@@ -7,167 +7,218 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans pb-24">
 
 <header class="bg-red-600 text-white p-6 text-center shadow">
     <h1 id="nomeLojaTitulo" class="text-3xl font-bold">🍔 Minha Lanchonete</h1>
     <p>Faça seu pedido online</p>
-    <button onclick="abrirPainel()" class="mt-3 bg-red-800 px-3 py-1 rounded">Admin</button>
+    <button onclick="abrirPainel()" class="mt-3 bg-red-800 px-4 py-1 rounded-full text-sm font-semibold shadow">Painel Admin</button>
 </header>
 
 <div class="max-w-4xl mx-auto p-4">
-    <div id="produtos" class="grid md:grid-cols-2 gap-4"></div>
+    <div id="produtos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 </div>
 
-<div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 flex justify-between">
+<div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 flex justify-between items-center z-40">
     <div>
-        <div>Itens: <span id="itens">0</span></div>
-        <div>Total: R$ <span id="total">0,00</span></div>
+        <div class="text-sm text-gray-600">Itens: <span id="itens" class="font-bold text-gray-900">0</span></div>
+        <div class="text-lg font-bold text-gray-800">Total: R$ <span id="total">0,00</span></div>
     </div>
-    <button onclick="enviarPedido()" class="bg-green-600 text-white px-4 py-2 rounded">WhatsApp</button>
+    <button onclick="enviarPedido()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow transition">Enviar via WhatsApp</button>
 </div>
 
-<div id="painel" class="hidden fixed inset-0 bg-black/80 overflow-auto">
-<div class="max-w-3xl mx-auto bg-white mt-6 p-6 rounded">
-<h2 class="text-2xl font-bold mb-4">Painel Administrativo</h2>
+<div id="painel" class="hidden fixed inset-0 bg-black/80 overflow-auto z-50 p-4">
+<div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-2xl my-4">
+<h2 class="text-2xl font-bold mb-4 border-b pb-2 text-gray-800">Painel Administrativo</h2>
 
-<input id="nomeLoja" class="border p-2 w-full mb-2" placeholder="Nome da Lanchonete">
-<input id="whatsapp" class="border p-2 w-full mb-4" placeholder="WhatsApp Ex: 5521999999999">
+<div class="mb-6 bg-gray-50 p-4 rounded-lg">
+    <h3 class="font-bold mb-2 text-gray-700">Configurações da Loja</h3>
+    <input id="nomeLoja" class="border p-2 w-full mb-2 rounded" placeholder="Nome da Lanchonete">
+    <input id="whatsapp" class="border p-2 w-full mb-2 rounded" placeholder="WhatsApp Ex: 5521999999999">
+    <button onclick="salvarConfig()" class="bg-green-600 text-white px-4 py-2 rounded font-medium w-full">Salvar Configurações</button>
+</div>
 
-<h3 class="font-bold mb-2">Cadastrar Produto</h3>
+<div class="mb-6 bg-gray-50 p-4 rounded-lg">
+    <h3 class="font-bold mb-2 text-gray-700">Cadastrar Novo Produto</h3>
+    <input id="nome" class="border p-2 w-full mb-2 rounded" placeholder="Nome do Produto">
+    <input id="preco" type="number" step="0.01" class="border p-2 w-full mb-2 rounded" placeholder="Preço (Ex: 20.00)">
+    <input id="foto" class="border p-2 w-full mb-2 rounded" placeholder="Caminho da foto (Ex: imagens/lanche.jpg)">
+    <textarea id="descricao" class="border p-2 w-full mb-2 rounded" placeholder="Descrição do produto"></textarea>
+    <button onclick="salvarProduto()" class="bg-blue-600 text-white px-4 py-2 rounded font-medium w-full">Salvar Produto</button>
+</div>
 
-<input id="nome" class="border p-2 w-full mb-2" placeholder="Nome">
-<input id="preco" type="number" step="0.01" class="border p-2 w-full mb-2" placeholder="Preço">
-<input id="foto" class="border p-2 w-full mb-2" placeholder="URL da Foto">
-<textarea id="descricao" class="border p-2 w-full mb-2" placeholder="Descrição"></textarea>
+<h3 class="font-bold mb-2 text-gray-700">Produtos Cadastrados</h3>
+<div id="listaAdmin" class="mt-2 max-h-60 overflow-y-auto border rounded p-2 bg-gray-50"></div>
 
-<button onclick="salvarProduto()" class="bg-blue-600 text-white px-4 py-2 rounded">Salvar Produto</button>
-<button onclick="salvarConfig()" class="bg-green-600 text-white px-4 py-2 rounded">Salvar Configurações</button>
-<button onclick="fecharPainel()" class="bg-gray-600 text-white px-4 py-2 rounded">Fechar</button>
+<hr class="my-6">
 
-<div id="listaAdmin" class="mt-6"></div>
+<div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="font-bold mb-2 text-gray-700">Gerar QR Code para Mesa</h3>
+    <div class="flex gap-2">
+        <input id="mesa" class="border p-2 rounded w-full" placeholder="Número da mesa">
+        <button onclick="gerarQR()" class="bg-purple-600 text-white px-6 py-2 rounded font-medium">Gerar</button>
+    </div>
+    <div id="qrcode" class="mt-4 flex justify-center bg-white p-4 rounded border inline-block hidden"></div>
+</div>
 
-<hr class="my-4">
-
-<h3 class="font-bold">QR Code Mesa</h3>
-<input id="mesa" class="border p-2" placeholder="Número da mesa">
-<button onclick="gerarQR()" class="bg-purple-600 text-white px-4 py-2 rounded">Gerar</button>
-<div id="qrcode" class="mt-4"></div>
+<div class="mt-6">
+    <button onclick="fecharPainel()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded w-full font-medium">Fechar Painel</button>
+</div>
 
 </div>
 </div>
 
 <script>
-let produtos = JSON.parse(localStorage.getItem('produtos')) || [
-{nome:'X-Burguer',preco:20,foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500',descricao:'Hambúrguer artesanal'},
-{nome:'Batata Frita',preco:15,foto:'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500',descricao:'Porção crocante'},
-{nome:'Refrigerante',preco:6,foto:'https://images.unsplash.com/photo-1624517452488-04869289c4ca?w=500',descricao:'Lata 350ml'}
+// Lista padrão com URLs de imagem diretas e limpas (resolve o bug de carregamento em redes móveis)
+const produtosPadrao = [
+    {nome:'X-Burguer', preco:20.00, foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd', descricao:'Hambúrguer artesanal com queijo derretido e molho especial.'},
+    {nome:'Batata Frita', preco:15.00, foto:'https://images.unsplash.com/photo-1576107232684-1279f390859f', descricao:'Porção de batatas fritas crocantes e sequinhas.'},
+    {nome:'Refrigerante', preco:6.00, foto:'https://images.unsplash.com/photo-1624517452488-04869289c4ca', descricao:'Lata 350ml trincando de gelada.'}
 ];
 
-let carrinho=[];
-let whatsapp=localStorage.getItem('whatsapp')||'5521999999999';
-let nomeLoja=localStorage.getItem('nomeLoja')||'Minha Lanchonete';
+let produtos = JSON.parse(localStorage.getItem('produtos')) || produtosPadrao;
+let carrinho = [];
+let whatsapp = localStorage.getItem('whatsapp') || '5521999999999';
+let nomeLoja = localStorage.getItem('nomeLoja') || 'Minha Lanchonete';
 
-document.getElementById('nomeLojaTitulo').innerText='🍔 '+nomeLoja;
+document.getElementById('nomeLojaTitulo').innerText = '🍔 ' + nomeLoja;
 
-function renderizar(){
-let html='';
-produtos.forEach((p,i)=>{
-html+=`
-<div class="bg-white rounded shadow overflow-hidden">
-<img src="${p.foto}" class="w-full h-48 object-cover">
-<div class="p-3">
-<h3 class="font-bold">${p.nome}</h3>
-<p>${p.descricao}</p>
-<div class="font-bold text-red-600">R$ ${p.preco.toFixed(2)}</div>
-<button onclick="add(${i})" class="bg-red-600 text-white px-3 py-2 rounded mt-2">Adicionar</button>
-<button onclick="editar(${i})" class="bg-yellow-500 text-white px-3 py-2 rounded mt-2">Editar</button>
-</div>
-</div>`;
-});
-document.getElementById('produtos').innerHTML=html;
-admin();
+function renderizar() {
+    let html = '';
+    produtos.forEach((p, i) => {
+        html += `
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+            <img src="${p.foto}" class="w-full h-48 object-cover" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591';">
+            <div class="p-4">
+                <h3 class="font-bold text-xl text-gray-800">${p.nome}</h3>
+                <p class="text-gray-600 text-sm mt-1 h-12 overflow-hidden">${p.descricao}</p>
+                <div class="font-bold text-xl text-red-600 mt-2">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <button onclick="add(${i})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-semibold text-sm transition">Adicionar</button>
+                    <button onclick="editar(${i})" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded font-semibold text-sm transition">Editar</button>
+                </div>
+            </div>
+        </div>`;
+    });
+    document.getElementById('produtos').innerHTML = html;
+    admin();
 }
 
-function add(i){
-carrinho.push(produtos[i]);
-document.getElementById('itens').innerText=carrinho.length;
-let t=carrinho.reduce((a,b)=>a+b.preco,0);
-document.getElementById('total').innerText=t.toFixed(2).replace('.',',');
+function add(i) {
+    carrinho.push(produtos[i]);
+    document.getElementById('itens').innerText = carrinho.length;
+    let t = carrinho.reduce((a, b) => a + Number(b.preco), 0);
+    document.getElementById('total').innerText = t.toFixed(2).replace('.', ',');
 }
 
-function enviarPedido(){
-if(carrinho.length==0){alert('Carrinho vazio');return;}
-let msg='Pedido:%0A';
-carrinho.forEach(x=>msg+=x.nome+' - R$ '+x.preco+'%0A');
-window.open('https://wa.me/'+whatsapp+'?text='+msg);
+function enviarPedido() {
+    if (carrinho.length == 0) { alert('Seu carrinho está vazio!'); return; }
+    let msg = `*Novo Pedido - ${nomeLoja}*%0A%0A`;
+    carrinho.forEach(x => msg += `• ${x.nome} - R$ ${Number(x.preco).toFixed(2).replace('.', ',')}%0A`);
+    let totalPedido = carrinho.reduce((a, b) => a + Number(b.preco), 0);
+    msg += `%0A*Total: R$ ${totalPedido.toFixed(2).replace('.', ',')}*`;
+    window.open('https://wa.me/' + whatsapp + '?text=' + msg);
 }
 
-function abrirPainel(){
-if(prompt('Senha')==='admin'){
-document.getElementById('painel').classList.remove('hidden');
-}
-}
-
-function fecharPainel(){
-document.getElementById('painel').classList.add('hidden');
+function abrirPainel() {
+    if (prompt('Digite a senha de administrador:') === 'admin') {
+        document.getElementById('painel').classList.remove('hidden');
+    } else {
+        alert('Senha incorreta!');
+    }
 }
 
-function salvarConfig(){
-nomeLoja=document.getElementById('nomeLoja').value||nomeLoja;
-whatsapp=document.getElementById('whatsapp').value||whatsapp;
-localStorage.setItem('nomeLoja',nomeLoja);
-localStorage.setItem('whatsapp',whatsapp);
-document.getElementById('nomeLojaTitulo').innerText='🍔 '+nomeLoja;
-alert('Salvo');
+function fecharPainel() {
+    document.getElementById('painel').classList.add('hidden');
 }
 
-function salvarProduto(){
-produtos.push({
-nome:document.getElementById('nome').value,
-preco:Number(document.getElementById('preco').value),
-foto:document.getElementById('foto').value,
-descricao:document.getElementById('descricao').value
-});
-localStorage.setItem('produtos',JSON.stringify(produtos));
-renderizar();
+function salvarConfig() {
+    nomeLoja = document.getElementById('nomeLoja').value || nomeLoja;
+    whatsapp = document.getElementById('whatsapp').value || whatsapp;
+    localStorage.setItem('nomeLoja', nomeLoja);
+    localStorage.setItem('whatsapp', whatsapp);
+    document.getElementById('nomeLojaTitulo').innerText = '🍔 ' + nomeLoja;
+    alert('Configurações salvas!');
+    renderizar();
 }
 
-function editar(i){
-let n=prompt('Nome',produtos[i].nome);
-let p=prompt('Preço',produtos[i].preco);
-let f=prompt('Foto',produtos[i].foto);
-produtos[i].nome=n;
-produtos[i].preco=Number(p);
-produtos[i].foto=f;
-localStorage.setItem('produtos',JSON.stringify(produtos));
-renderizar();
+function salvarProduto() {
+    let nomeIn = document.getElementById('nome').value;
+    let precoIn = document.getElementById('preco').value;
+    let fotoIn = document.getElementById('foto').value;
+    let descIn = document.getElementById('descricao').value;
+
+    if(!nomeIn || !precoIn) { alert('Por favor, preencha nome e preço.'); return; }
+
+    produtos.push({
+        nome: nomeIn,
+        preco: Number(precoIn),
+        foto: fotoIn || 'https://images.unsplash.com/photo-1513104890138-7c749659a591',
+        descricao: descIn
+    });
+    
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    
+    // Limpa os campos do formulário
+    document.getElementById('nome').value = '';
+    document.getElementById('preco').value = '';
+    document.getElementById('foto').value = '';
+    document.getElementById('descricao').value = '';
+    
+    alert('Produto adicionado!');
+    renderizar();
 }
 
-function admin(){
-let h='';
-produtos.forEach((p,i)=>{
-h+=`<div class="border p-2 mb-2">${p.nome} - R$ ${p.preco.toFixed(2)}
-<button onclick="excluir(${i})" class="bg-red-600 text-white px-2 py-1 rounded ml-2">Excluir</button></div>`;
-});
-document.getElementById('listaAdmin').innerHTML=h;
+function editar(i) {
+    let n = prompt('Nome do produto:', produtos[i].nome);
+    if (n === null) return;
+    let p = prompt('Preço do produto:', produtos[i].preco);
+    if (p === null) return;
+    let f = prompt('URL/Caminho da Foto:', produtos[i].foto);
+    if (f === null) return;
+    let d = prompt('Descrição:', produtos[i].descricao);
+    if (d === null) return;
+
+    produtos[i].nome = n;
+    produtos[i].preco = Number(p);
+    produtos[i].foto = f;
+    produtos[i].descricao = d;
+    
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    renderizar();
 }
 
-function excluir(i){
-produtos.splice(i,1);
-localStorage.setItem('produtos',JSON.stringify(produtos));
-renderizar();
+function admin() {
+    let h = '';
+    produtos.forEach((p, i) => {
+        h += `
+        <div class="flex justify-between items-center border-b py-2 text-sm text-gray-700">
+            <span>${p.nome} - R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span>
+            <button onclick="excluir(${i})" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Excluir</button>
+        </div>`;
+    });
+    document.getElementById('listaAdmin').innerHTML = h;
 }
 
-function gerarQR(){
-let mesa=document.getElementById('mesa').value;
-let div=document.getElementById('qrcode');
-div.innerHTML='';
-new QRCode(div, window.location.href+'?mesa='+mesa);
+function excluir(i) {
+    if(confirm('Tem certeza que deseja excluir este produto?')) {
+        produtos.splice(i, 1);
+        localStorage.setItem('produtos', JSON.stringify(produtos));
+        renderizar();
+    }
 }
 
-document.getElementById('nomeLoja').value=nomeLoja;
-document.getElementById('whatsapp').value=whatsapp;
+function gerarQR() {
+    let mesa = document.getElementById('mesa').value;
+    let div = document.getElementById('qrcode');
+    if(!mesa) { alert('Digite o número da mesa'); return; }
+    div.innerHTML = '';
+    div.classList.remove('hidden');
+    new QRCode(div, window.location.href.split('?')[0] + '?mesa=' + mesa);
+}
+
+document.getElementById('nomeLoja').value = nomeLoja;
+document.getElementById('whatsapp').value = whatsapp;
 
 renderizar();
 </script>
