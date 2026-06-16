@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Autoatendimento & Painel</title>
-    <!-- Links corrigidos do Tailwind e QRCode -->
     <script src="https://tailwindcss.com"></script>
     <script src="https://cloudflare.com"></script>
 </head>
@@ -151,7 +150,7 @@
             if (carrinho.length === 0) { alert("Adicione itens ao carrinho primeiro!"); return; }
             let contagemItens = {};
             carrinho.forEach(item => { contagemItens[item.nome] = (contagemItens[item.nome] || 0) + 1; });
-            let mensagem = `*NOVO PEDIDO - MESA ${numeroMesa}* 🍔🔥\n\n*Itens:*\n`;
-            for (let produto in contagemItens) { mensagem += `• ${contagemItens[produto]}x ${produto}\n`; }
+            let message = `*NOVO PEDIDO - MESA ${numeroMesa}* 🍔🔥\n\n*Itens:*\n`;
+            for (let produto in contagemItens) { message += `• ${contagemItens[produto]}x ${produto}\n`; }
             const total = carrinho.reduce((sum, item) => sum + item.preco, 0);
-            mensagem += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')}`;
+            message += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')}`;
