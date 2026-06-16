@@ -3,529 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lanchonete Express</title>
-
+<title>Cardápio Digital</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 </head>
+<body class="bg-gray-100 font-sans">
 
-<body class="bg-gray-100 font-sans pb-24">
-
-<div id="tela-cliente">
-
-<header class="bg-red-600 text-white text-center py-6 shadow-md relative">
-<h1 class="text-3xl font-bold">🍔 Lanchonete Express</h1>
-<p class="text-sm">Faça seu pedido direto da mesa</p>
-
-<div id="display-mesa"
-class="mt-3 inline-block bg-white text-red-600 font-bold px-4 py-1 rounded-full">
-Mesa: Carregando...
-</div>
-
-<button
-onclick="abrirPainel()"
-class="absolute top-2 right-2 bg-red-800 px-2 py-1 rounded text-xs">
-💼 Admin
-</button>
+<header class="bg-red-600 text-white p-6 text-center shadow">
+    <h1 id="nomeLojaTitulo" class="text-3xl font-bold">🍔 Minha Lanchonete</h1>
+    <p>Faça seu pedido online</p>
+    <button onclick="abrirPainel()" class="mt-3 bg-red-800 px-3 py-1 rounded">Admin</button>
 </header>
 
-<main id="conteudo-cardapio"
-class="max-w-md mx-auto p-4 space-y-6"></main>
-
-<div
-class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg flex justify-between items-center max-w-md mx-auto rounded-t-xl">
-
-<div>
-<p class="text-xs">Itens: <span id="qtd-itens">0</span></p>
-<p class="font-bold">
-Total: R$
-<span id="valor-total">0,00</span>
-</p>
+<div class="max-w-4xl mx-auto p-4">
+    <div id="produtos" class="grid md:grid-cols-2 gap-4"></div>
 </div>
 
-<button
-onclick="enviarPedido()"
-class="bg-green-600 text-white px-4 py-3 rounded-xl font-bold">
-WhatsApp 🚀
-</button>
-
+<div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 flex justify-between">
+    <div>
+        <div>Itens: <span id="itens">0</span></div>
+        <div>Total: R$ <span id="total">0,00</span></div>
+    </div>
+    <button onclick="enviarPedido()" class="bg-green-600 text-white px-4 py-2 rounded">WhatsApp</button>
 </div>
 
-</div>
+<div id="painel" class="hidden fixed inset-0 bg-black/80 overflow-auto">
+<div class="max-w-3xl mx-auto bg-white mt-6 p-6 rounded">
+<h2 class="text-2xl font-bold mb-4">Painel Administrativo</h2>
 
-<div id="tela-admin"
-class="hidden min-h-screen bg-gray-900 text-white p-4">
+<input id="nomeLoja" class="border p-2 w-full mb-2" placeholder="Nome da Lanchonete">
+<input id="whatsapp" class="border p-2 w-full mb-4" placeholder="WhatsApp Ex: 5521999999999">
 
-<div class="max-w-xl mx-auto">
+<h3 class="font-bold mb-2">Cadastrar Produto</h3>
 
-<div class="flex justify-between mb-4">
-<h2 class="text-2xl font-bold">Painel Admin</h2>
+<input id="nome" class="border p-2 w-full mb-2" placeholder="Nome">
+<input id="preco" type="number" step="0.01" class="border p-2 w-full mb-2" placeholder="Preço">
+<input id="foto" class="border p-2 w-full mb-2" placeholder="URL da Foto">
+<textarea id="descricao" class="border p-2 w-full mb-2" placeholder="Descrição"></textarea>
 
-<button
-onclick="fecharPainel()"
-class="bg-gray-700 px-4 py-2 rounded">
-Sair
-</button>
-</div>
+<button onclick="salvarProduto()" class="bg-blue-600 text-white px-4 py-2 rounded">Salvar Produto</button>
+<button onclick="salvarConfig()" class="bg-green-600 text-white px-4 py-2 rounded">Salvar Configurações</button>
+<button onclick="fecharPainel()" class="bg-gray-600 text-white px-4 py-2 rounded">Fechar</button>
 
-<div class="bg-gray-800 p-4 rounded mb-4">
+<div id="listaAdmin" class="mt-6"></div>
 
-<h3 class="font-bold mb-2">
-WhatsApp
-</h3>
+<hr class="my-4">
 
-<input
-id="config-whatsapp"
-type="text"
-class="w-full p-2 rounded text-black mb-2">
-
-<button
-onclick="salvarConfig()"
-class="bg-blue-600 px-4 py-2 rounded w-full">
-Salvar
-</button>
+<h3 class="font-bold">QR Code Mesa</h3>
+<input id="mesa" class="border p-2" placeholder="Número da mesa">
+<button onclick="gerarQR()" class="bg-purple-600 text-white px-4 py-2 rounded">Gerar</button>
+<div id="qrcode" class="mt-4"></div>
 
 </div>
-
-<div class="bg-gray-800 p-4 rounded mb-4">
-
-<h3 id="form-titulo"
-class="font-bold mb-2">
-Adicionar Produto
-</h3>
-
-<form id="prod-form" onsubmit="salvarProduto(event)">
-
-<input type="hidden" id="prod-id">
-
-<input
-id="prod-nome"
-type="text"
-placeholder="Produto"
-required
-class="w-full p-2 rounded text-black mb-2">
-
-<input
-id="prod-preco"
-type="number"
-step="0.01"
-placeholder="Preço"
-required
-class="w-full p-2 rounded text-black mb-2">
-
-<select
-id="prod-categoria"
-class="w-full p-2 rounded text-black mb-2">
-
-<option>Burgers</option>
-<option>Acompanhamentos</option>
-<option>Bebidas</option>
-
-</select>
-
-<input
-id="prod-descricao"
-type="text"
-placeholder="Descrição"
-class="w-full p-2 rounded text-black mb-2">
-
-<button
-class="bg-green-600 px-4 py-2 rounded w-full">
-Salvar Produto
-</button>
-
-</form>
-
-</div>
-
-<div class="bg-gray-800 p-4 rounded mb-4">
-
-<h3 class="font-bold mb-2">
-Produtos
-</h3>
-
-<div id="lista-admin-produtos"></div>
-
-</div>
-
-<div class="bg-gray-800 p-4 rounded">
-
-<h3 class="font-bold mb-2">
-Gerar QR Code
-</h3>
-
-<input
-id="numero-mesa-gerar"
-type="number"
-placeholder="Mesa"
-class="w-full p-2 rounded text-black mb-2">
-
-<button
-onclick="gerarQRCodeMesa()"
-class="bg-purple-600 px-4 py-2 rounded w-full">
-Gerar QR
-</button>
-
-<div
-id="qrcode-container"
-class="bg-white p-4 mt-4 inline-block hidden">
-</div>
-
-<p id="qrcode-legenda" class="text-xs mt-2 hidden"></p>
-
-</div>
-
-</div>
-
 </div>
 
 <script>
-
-const produtosPadrao = [
-
-{
-id:1,
-nome:"X-Burguer",
-preco:22,
-categoria:"Burgers",
-descricao:"Hambúrguer artesanal"
-},
-
-{
-id:2,
-nome:"Batata Frita",
-preco:14,
-categoria:"Acompanhamentos",
-descricao:"Porção individual"
-},
-
-{
-id:3,
-nome:"Refrigerante",
-preco:6,
-categoria:"Bebidas",
-descricao:"350ml"
-}
-
+let produtos = JSON.parse(localStorage.getItem('produtos')) || [
+{nome:'X-Burguer',preco:20,foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500',descricao:'Hambúrguer artesanal'},
+{nome:'Batata Frita',preco:15,foto:'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500',descricao:'Porção crocante'},
+{nome:'Refrigerante',preco:6,foto:'https://images.unsplash.com/photo-1624517452488-04869289c4ca?w=500',descricao:'Lata 350ml'}
 ];
 
-let produtos =
-JSON.parse(localStorage.getItem("produtos"))
-|| produtosPadrao;
+let carrinho=[];
+let whatsapp=localStorage.getItem('whatsapp')||'5521999999999';
+let nomeLoja=localStorage.getItem('nomeLoja')||'Minha Lanchonete';
 
-let whatsappConfig =
-localStorage.getItem("whatsapp")
-|| "5511999999999";
+document.getElementById('nomeLojaTitulo').innerText='🍔 '+nomeLoja;
 
-let carrinho = [];
-
-let numeroMesa = "Balcão";
-
-window.onload = () => {
-
-const params =
-new URLSearchParams(window.location.search);
-
-numeroMesa =
-params.get("mesa") || "Balcão";
-
-document.getElementById("display-mesa")
-.innerText = "Mesa: " + numeroMesa;
-
-document.getElementById("config-whatsapp")
-.value = whatsappConfig;
-
-renderizarCardapio();
-
-};
-
-function renderizarCardapio(){
-
-const container =
-document.getElementById("conteudo-cardapio");
-
-container.innerHTML = "";
-
-["Burgers","Acompanhamentos","Bebidas"]
-.forEach(cat=>{
-
-const itens =
-produtos.filter(p=>p.categoria===cat);
-
-if(!itens.length) return;
-
-let html =
-`<section>
-<h2 class="text-xl font-bold mb-2">${cat}</h2>`;
-
-itens.forEach(p=>{
-
-html += `
-<div class="bg-white p-4 rounded shadow mb-2">
-
+function renderizar(){
+let html='';
+produtos.forEach((p,i)=>{
+html+=`
+<div class="bg-white rounded shadow overflow-hidden">
+<img src="${p.foto}" class="w-full h-48 object-cover">
+<div class="p-3">
 <h3 class="font-bold">${p.nome}</h3>
-
-<p class="text-sm text-gray-500">
-${p.descricao}
-</p>
-
-<p class="font-bold text-red-600">
-R$ ${p.preco.toFixed(2)}
-</p>
-
-<button
-onclick="adicionarAoCarrinho('${p.nome}',${p.preco})"
-class="bg-red-600 text-white px-3 py-1 rounded mt-2">
-Adicionar
-</button>
-
+<p>${p.descricao}</p>
+<div class="font-bold text-red-600">R$ ${p.preco.toFixed(2)}</div>
+<button onclick="add(${i})" class="bg-red-600 text-white px-3 py-2 rounded mt-2">Adicionar</button>
+<button onclick="editar(${i})" class="bg-yellow-500 text-white px-3 py-2 rounded mt-2">Editar</button>
+</div>
 </div>`;
 });
-
-html += "</section>";
-
-container.innerHTML += html;
-
-});
-
+document.getElementById('produtos').innerHTML=html;
+admin();
 }
 
-function adicionarAoCarrinho(nome,preco){
-
-carrinho.push({nome,preco});
-
-document.getElementById("qtd-itens")
-.innerText = carrinho.length;
-
-const total =
-carrinho.reduce((s,i)=>s+i.preco,0);
-
-document.getElementById("valor-total")
-.innerText =
-total.toFixed(2).replace(".",",");
-
+function add(i){
+carrinho.push(produtos[i]);
+document.getElementById('itens').innerText=carrinho.length;
+let t=carrinho.reduce((a,b)=>a+b.preco,0);
+document.getElementById('total').innerText=t.toFixed(2).replace('.',',');
 }
 
 function enviarPedido(){
-
-if(carrinho.length===0){
-
-alert("Carrinho vazio");
-return;
-
-}
-
-let texto =
-`*NOVO PEDIDO - MESA ${numeroMesa}*\n\n`;
-
-carrinho.forEach(item=>{
-texto += `• ${item.nome}\n`;
-});
-
-const total =
-carrinho.reduce((s,i)=>s+i.preco,0);
-
-texto +=
-`\n*Total:* R$ ${total.toFixed(2)}`;
-
-window.open(
-`https://wa.me/${whatsappConfig}?text=${encodeURIComponent(texto)}`,
-"_blank"
-);
-
+if(carrinho.length==0){alert('Carrinho vazio');return;}
+let msg='Pedido:%0A';
+carrinho.forEach(x=>msg+=x.nome+' - R$ '+x.preco+'%0A');
+window.open('https://wa.me/'+whatsapp+'?text='+msg);
 }
 
 function abrirPainel(){
-
-const senha = prompt("Senha:");
-
-if(senha==="admin"){
-
-document.getElementById("tela-cliente")
-.classList.add("hidden");
-
-document.getElementById("tela-admin")
-.classList.remove("hidden");
-
-renderizarListaAdmin();
-
+if(prompt('Senha')==='admin'){
+document.getElementById('painel').classList.remove('hidden');
 }
-
 }
 
 function fecharPainel(){
-
-document.getElementById("tela-admin")
-.classList.add("hidden");
-
-document.getElementById("tela-cliente")
-.classList.remove("hidden");
-
+document.getElementById('painel').classList.add('hidden');
 }
 
 function salvarConfig(){
-
-whatsappConfig =
-document.getElementById("config-whatsapp").value;
-
-localStorage.setItem(
-"whatsapp",
-whatsappConfig
-);
-
-alert("Salvo");
-
+nomeLoja=document.getElementById('nomeLoja').value||nomeLoja;
+whatsapp=document.getElementById('whatsapp').value||whatsapp;
+localStorage.setItem('nomeLoja',nomeLoja);
+localStorage.setItem('whatsapp',whatsapp);
+document.getElementById('nomeLojaTitulo').innerText='🍔 '+nomeLoja;
+alert('Salvo');
 }
 
-function renderizarListaAdmin(){
-
-const lista =
-document.getElementById("lista-admin-produtos");
-
-lista.innerHTML = "";
-
-produtos.forEach(p=>{
-
-lista.innerHTML += `
-<div class="bg-gray-700 p-2 rounded flex justify-between mb-2">
-
-<span>${p.nome}</span>
-
-<div>
-
-<button
-onclick="carregarProdutoEdicao(${p.id})">
-Editar
-</button>
-
-<button
-onclick="excluirProduto(${p.id})">
-Excluir
-</button>
-
-</div>
-
-</div>`;
-
+function salvarProduto(){
+produtos.push({
+nome:document.getElementById('nome').value,
+preco:Number(document.getElementById('preco').value),
+foto:document.getElementById('foto').value,
+descricao:document.getElementById('descricao').value
 });
-
+localStorage.setItem('produtos',JSON.stringify(produtos));
+renderizar();
 }
 
-function salvarProduto(e){
-
-e.preventDefault();
-
-const id =
-document.getElementById("prod-id").value;
-
-const produto = {
-
-id: id ? Number(id) : Date.now(),
-
-nome:
-document.getElementById("prod-nome").value,
-
-preco:
-parseFloat(document.getElementById("prod-preco").value),
-
-categoria:
-document.getElementById("prod-categoria").value,
-
-descricao:
-document.getElementById("prod-descricao").value
-
-};
-
-if(id){
-
-produtos =
-produtos.map(p=>p.id==id ? produto : p);
-
-}else{
-
-produtos.push(produto);
-
+function editar(i){
+let n=prompt('Nome',produtos[i].nome);
+let p=prompt('Preço',produtos[i].preco);
+let f=prompt('Foto',produtos[i].foto);
+produtos[i].nome=n;
+produtos[i].preco=Number(p);
+produtos[i].foto=f;
+localStorage.setItem('produtos',JSON.stringify(produtos));
+renderizar();
 }
 
-localStorage.setItem(
-"produtos",
-JSON.stringify(produtos)
-);
-
-document.getElementById("prod-form").reset();
-
-renderizarListaAdmin();
-renderizarCardapio();
-
-}
-
-function carregarProdutoEdicao(id){
-
-const p =
-produtos.find(x=>x.id==id);
-
-document.getElementById("prod-id").value=p.id;
-document.getElementById("prod-nome").value=p.nome;
-document.getElementById("prod-preco").value=p.preco;
-document.getElementById("prod-categoria").value=p.categoria;
-document.getElementById("prod-descricao").value=p.descricao;
-
-}
-
-function excluirProduto(id){
-
-if(!confirm("Excluir produto?")) return;
-
-produtos =
-produtos.filter(p=>p.id!=id);
-
-localStorage.setItem(
-"produtos",
-JSON.stringify(produtos)
-);
-
-renderizarListaAdmin();
-renderizarCardapio();
-
-}
-
-function gerarQRCodeMesa(){
-
-const mesa =
-document.getElementById("numero-mesa-gerar").value;
-
-if(!mesa) return;
-
-const url =
-window.location.origin +
-window.location.pathname +
-"?mesa=" + mesa;
-
-const container =
-document.getElementById("qrcode-container");
-
-container.innerHTML = "";
-
-container.classList.remove("hidden");
-
-new QRCode(container,{
-text:url,
-width:200,
-height:200
+function admin(){
+let h='';
+produtos.forEach((p,i)=>{
+h+=`<div class="border p-2 mb-2">${p.nome} - R$ ${p.preco.toFixed(2)}
+<button onclick="excluir(${i})" class="bg-red-600 text-white px-2 py-1 rounded ml-2">Excluir</button></div>`;
 });
-
-const legenda =
-document.getElementById("qrcode-legenda");
-
-legenda.classList.remove("hidden");
-
-legenda.innerText =
-"Mesa " + mesa;
-
+document.getElementById('listaAdmin').innerHTML=h;
 }
 
+function excluir(i){
+produtos.splice(i,1);
+localStorage.setItem('produtos',JSON.stringify(produtos));
+renderizar();
+}
+
+function gerarQR(){
+let mesa=document.getElementById('mesa').value;
+let div=document.getElementById('qrcode');
+div.innerHTML='';
+new QRCode(div, window.location.href+'?mesa='+mesa);
+}
+
+document.getElementById('nomeLoja').value=nomeLoja;
+document.getElementById('whatsapp').value=whatsapp;
+
+renderizar();
 </script>
-
 </body>
 </html>
