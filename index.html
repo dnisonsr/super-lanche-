@@ -329,20 +329,19 @@
             }
         }
 
-        function gerarQR() {
-            let mesa = document.getElementById('mesa').value;
-            let div = document.getElementById('qrcode');
-            if(!mesa) { alert('Digite o número da mesa'); return; }
-            div.innerHTML = '';
-            div.classList.remove('hidden');
-            
-            let urlLimpa = window.location.href.split('?')[0];
-            let urlMesa = urlLimpa + '?mesa=' + mesa;
-            
-            // Gerador de QR Code ultra seguro via API pública do Google (não quebra nunca)
-            div.innerHTML = `<img src="https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(urlMesa)}&choe=UTF-8" alt="QR Code Mesa ${mesa}">`;
-        }
-
+       function gerarQR() {
+    let mesa = document.getElementById('mesa').value;
+    let div = document.getElementById('qrcode');
+    if(!mesa) { alert('Digite o número da mesa'); return; }
+    div.innerHTML = '';
+    div.classList.remove('hidden');
+    
+    let urlLimpa = window.location.href.split('?')[0];
+    let urlMesa = urlLimpa + '?mesa=' + mesa;
+    
+    // Novo gerador compatível com navegadores de celular:
+    div.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlMesa)}" alt="QR Code Mesa ${mesa}" class="mx-auto my-2 border p-2 bg-white">`;
+}
         document.getElementById('nomeLoja').value = nomeLoja;
         document.getElementById('whatsapp').value = whatsapp;
 
