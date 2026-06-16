@@ -89,11 +89,9 @@
         let produtos = [];
         let carrinho = [];
         
-        // Puxa as configurações salvas ou define o padrão do Feijão Lanches
         let whatsapp = localStorage.getItem('whatsapp') || '5521979883993';
         let nomeLoja = localStorage.getItem('nomeLoja') || 'FEIJÃO LANCHES';
 
-        // Atualiza o título imediatamente na abertura
         document.getElementById('nomeLojaTitulo').innerText = '🍔 ' + nomeLoja;
 
         function carregarBancoDeDados() {
@@ -103,7 +101,6 @@
                     produtos = JSON.parse(dadosSalvos);
                 }
                 
-                // Se o banco estiver vazio por qualquer motivo, força os padrões na tela
                 if (!produtos || produtos.length === 0) {
                     produtos = produtosPadrao;
                     localStorage.setItem('produtos_db_v2', JSON.stringify(produtosPadrao));
@@ -329,19 +326,20 @@
             }
         }
 
-       function gerarQR() {
-    let mesa = document.getElementById('mesa').value;
-    let div = document.getElementById('qrcode');
-    if(!mesa) { alert('Digite o número da mesa'); return; }
-    div.innerHTML = '';
-    div.classList.remove('hidden');
-    
-    let urlLimpa = window.location.href.split('?')[0];
-    let urlMesa = urlLimpa + '?mesa=' + mesa;
-    
-    // Novo gerador compatível com navegadores de celular:
-    div.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlMesa)}" alt="QR Code Mesa ${mesa}" class="mx-auto my-2 border p-2 bg-white">`;
-}
+        function gerarQR() {
+            let mesa = document.getElementById('mesa').value;
+            let div = document.getElementById('qrcode');
+            if(!mesa) { alert('Digite o número da mesa'); return; }
+            div.innerHTML = '';
+            div.classList.remove('hidden');
+            
+            let urlLimpa = window.location.href.split('?')[0];
+            let urlMesa = urlLimpa + '?mesa=' + mesa;
+            
+            // CORREÇÃO: Gerador atualizado de alta compatibilidade para smartphones
+            div.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlMesa)}" alt="QR Code Mesa ${mesa}" class="mx-auto my-2 border p-2 bg-white shadow-sm rounded">`;
+        }
+
         document.getElementById('nomeLoja').value = nomeLoja;
         document.getElementById('whatsapp').value = whatsapp;
 
