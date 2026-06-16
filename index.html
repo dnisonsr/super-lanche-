@@ -9,15 +9,15 @@
 <body class="bg-gray-100 font-sans pb-36">
 
     <header class="relative bg-cover bg-center h-64 md:h-80 shadow-inner flex flex-col justify-between items-center p-4 text-center" 
-            style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('https://lh3.googleusercontent.com/d/1X5X8v9D-pGZ46lCunXvR5_z4uA7CymD7');">
+            style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000');">
         
         <div class="w-full flex justify-end">
-            <button onclick="abrirPainel()" class="bg-black/40 text-white border border-white/40 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/60 transition">Painel Admin</button>
+            <button onclick="abrirPainel()" class="bg-black/50 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/70 transition">Painel Admin</button>
         </div>
 
         <div class="text-white drop-shadow-lg mb-2">
-            <h1 id="nomeLojaTitulo" class="hidden text-3xl font-bold">🍔 Le Jollye Lanches</h1>
-            <p id="subtituloLoja" class="bg-black/50 inline-block px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">Faça seu pedido online</p>
+            <h1 class="text-3xl md:text-4xl font-black tracking-wide uppercase">Le Jollye Lanches</h1>
+            <p id="subtituloLoja" class="bg-red-600 inline-block px-4 py-1 rounded-full text-xs font-bold mt-2 shadow-md">Faça seu pedido online</p>
         </div>
 
         <div class="w-full max-w-xl mb-4 px-2">
@@ -47,4 +47,310 @@
 
     <div id="painel" class="hidden fixed inset-0 bg-black/80 overflow-auto z-50 p-4">
         <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-2xl my-4">
-            <h2 class="text-2xl font-bold mb
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-gray-800">Painel Administrativo</h2>
+
+            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2 text-gray-700">Configurações da Loja</h3>
+                <input id="nomeLoja" class="border p-2 w-full mb-2 rounded" placeholder="Nome da Lanchonete">
+                <input id="whatsapp" class="border p-2 w-full mb-2 rounded" placeholder="WhatsApp Ex: 5521999999999">
+                <button onclick="salvarConfig()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium w-full transition">Salvar Configurações</button>
+            </div>
+
+            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2 text-gray-700">Cadastrar Novo Produto</h3>
+                <input id="nome" class="border p-2 w-full mb-2 rounded" placeholder="Nome do Produto">
+                <input id="preco" type="number" step="0.01" class="border p-2 w-full mb-2 rounded" placeholder="Preço (Ex: 20.00)">
+                
+                <label class="block text-sm font-medium text-gray-600 mb-1">Link da Foto (URL da Internet):</label>
+                <input id="fotoLink" class="border p-2 w-full mb-2 rounded" placeholder="https://site.com/foto-do-lanche.jpg">
+                
+                <textarea id="descricao" class="border p-2 w-full mb-2 rounded" placeholder="Descrição do produto"></textarea>
+                <button onclick="salvarProduto()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium w-full transition">Salvar Produto</button>
+            </div>
+
+            <h3 class="font-bold mb-2 text-gray-700">Produtos Cadastrados</h3>
+            <div id="listaAdmin" class="mt-2 max-h-60 overflow-y-auto border rounded p-2 bg-gray-50"></div>
+
+            <hr class="my-6">
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2 text-gray-700">Gerar QR Code para Mesa</h3>
+                <div class="flex gap-2">
+                    <input id="mesa" class="border p-2 rounded w-full" placeholder="Número da mesa">
+                    <button onclick="gerarQR()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-medium transition">Gerar</button>
+                </div>
+                <div id="qrcode" class="mt-4 flex justify-center bg-white p-4 rounded border hidden"></div>
+            </div>
+
+            <div class="mt-6">
+                <button onclick="fecharPainel()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded w-full font-medium transition">Fechar Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const produtosPadrao = [
+            {nome:'X-Burguer', preco:22.00, foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500', descricao:'Delicioso hambúrguer artesanal com queijo derretido e molho especial.'},
+            {nome:'Batata Frita', preco:12.00, foto:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=500', descricao:'Porção de batatas fritas crocantes, sequinhas e salgadas na medida.'},
+            {nome:'Refrigerante', preco:8.00, foto:'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500', descricao:'Lata trincando de gelada para acompanhar seu lanche.'}
+        ];
+
+        let produtos = [];
+        let carrinho = [];
+        let termoBusca = '';
+        
+        let whatsapp = localStorage.getItem('whatsapp') || '5521979883993';
+        let nomeLoja = localStorage.getItem('nomeLoja') || 'Le Jollye Lanches';
+
+        function carregarBancoDeDados() {
+            try {
+                let dadosSalvos = localStorage.getItem('produtos_db_v4');
+                if (dadosSalvos) {
+                    produtos = JSON.parse(dadosSalvos);
+                }
+                
+                if (!produtos || produtos.length === 0) {
+                    produtos = produtosPadrao;
+                    localStorage.setItem('produtos_db_v4', JSON.stringify(produtosPadrao));
+                }
+            } catch (e) {
+                produtos = produtosPadrao;
+            }
+            
+            renderizar();
+            verificarMesa();
+        }
+
+        function verificarMesa() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const numeroMesa = urlParams.get('mesa');
+            if (numeroMesa) {
+                document.getElementById('subtituloLoja').innerText = `Você está na Mesa ${numeroMesa} • Faça seu pedido online`;
+            } else {
+                document.getElementById('subtituloLoja').innerText = 'Faça seu pedido online';
+            }
+        }
+
+        function filtrarProdutos() {
+            termoBusca = document.getElementById('buscaInput').value.toLowerCase();
+            renderizar();
+        }
+
+        function renderizar() {
+            let html = '';
+            
+            let produtosFiltrados = produtos.filter(p => 
+                p.nome.toLowerCase().includes(termoBusca) || 
+                p.descricao.toLowerCase().includes(termoBusca)
+            );
+
+            if (produtosFiltrados.length === 0) {
+                html = `<div class="col-span-full text-center text-gray-500 my-8 font-medium">Nenhum lanche encontrado... 😕</div>`;
+            }
+
+            produtosFiltrados.forEach((p) => {
+                let indexOriginal = produtos.findIndex(item => item.nome === p.nome);
+                let qtdNoCarrinho = carrinho.filter(item => item.nome === p.nome).length;
+                
+                let exibicaoFoto = p.foto.length < 5 
+                    ? `<div class="w-full h-48 bg-gray-200 flex items-center justify-center text-6xl">${p.foto}</div>`
+                    : `<img src="${p.foto}" class="w-full h-48 object-cover" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591';">`;
+
+                html += `
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 flex flex-col justify-between hover:shadow-md transition">
+                    ${exibicaoFoto}
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start gap-2">
+                                <h3 class="font-bold text-lg text-gray-800">${p.nome}</h3>
+                                ${qtdNoCarrinho > 0 ? `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full shrink-0">✔ ${qtdNoCarrinho}x</span>` : ''}
+                            </div>
+                            <p class="text-gray-500 text-xs mt-1 h-10 overflow-hidden line-clamp-2">${p.descricao}</p>
+                        </div>
+                        <div class="mt-3">
+                            <div class="font-extrabold text-lg text-gray-900">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="add(${indexOriginal})" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold text-sm transition shadow-sm text-center">+ Adicionar</button>
+                                ${qtdNoCarrinho > 0 ? `<button onclick="removerUm('${p.nome}')" class="bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg font-medium text-sm transition border border-gray-200">🗑️</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('produtos').innerHTML = html;
+            admin();
+        }
+
+        function add(i) {
+            carrinho.push(produtos[i]);
+            atualizarTotais();
+        }
+
+        function removerUm(nomeProduto) {
+            let index = carrinho.findIndex(item => item.nome === nomeProduto);
+            if (index !== -1) {
+                carrinho.splice(index, 1);
+            }
+            atualizarTotais();
+        }
+
+        function limparCarrinho() {
+            if (carrinho.length === 0) return;
+            if (confirm('Deseja limpar o carrinho?')) {
+                carrinho = [];
+                atualizarTotais();
+            }
+        }
+
+        function atualizarTotais() {
+            document.getElementById('itens').innerText = carrinho.length;
+            let t = carrinho.reduce((a, b) => a + Number(b.preco), 0);
+            document.getElementById('total').innerText = t.toFixed(2).replace('.', ',');
+            renderizar();
+        }
+
+        function enviarPedido() {
+            if (carrinho.length == 0) { alert('Seu carrinho está vazio!'); return; }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const mesaAtual = urlParams.get('mesa') ? `(Mesa ${urlParams.get('mesa')})` : '';
+
+            let msg = `*Novo Pedido - ${nomeLoja}* ${mesaAtual}%0A%0A`;
+            
+            let resumo = {};
+            carrinho.forEach(item => {
+                resumo[item.nome] = (resumo[item.nome] || 0) + 1;
+            });
+            
+            for (let nome in resumo) {
+                let itemOriginal = carrinho.find(c => c.nome === nome);
+                let precoTotalItem = Number(itemOriginal.preco) * resumo[nome];
+                msg += `• ${resumo[nome]}x ${nome} - R$ ${precoTotalItem.toFixed(2).replace('.', ',')}%0A`;
+            }
+            
+            let totalPedido = carrinho.reduce((a, b) => a + Number(b.preco), 0);
+            msg += `%0A*Total Geral: R$ ${totalPedido.toFixed(2).replace('.', ',')}*`;
+
+            let numeroLimpo = whatsapp.replace(/\D/g, ''); 
+            if (numeroLimpo.length > 0 && !numeroLimpo.startsWith('55') && numeroLimpo.length <= 11) {
+                numeroLimpo = '55' + numeroLimpo;
+            }
+
+            window.open('https://wa.me/' + numeroLimpo + '?text=' + msg);
+        }
+
+        function abrirPainel() {
+            if (prompt('Digite a senha de administrador:') === 'admin') {
+                document.getElementById('painel').classList.remove('hidden');
+            } else {
+                alert('Senha incorreta!');
+            }
+        }
+
+        function fecharPainel() {
+            document.getElementById('painel').classList.add('hidden');
+        }
+
+        function salvarConfig() {
+            nomeLoja = document.getElementById('nomeLoja').value || nomeLoja;
+            whatsapp = document.getElementById('whatsapp').value || whatsapp;
+            localStorage.setItem('nomeLoja', nomeLoja);
+            localStorage.setItem('whatsapp', whatsapp);
+            alert('Configurações salvas!');
+            renderizar();
+        }
+
+        function salvarProduto() {
+            let nomeIn = document.getElementById('nome').value;
+            let precoIn = document.getElementById('preco').value;
+            let fotoIn = document.getElementById('fotoLink').value.trim();
+            let descIn = document.getElementById('descricao').value;
+
+            if(!nomeIn || !precoIn) { alert('Por favor, preencha nome e preço.'); return; }
+
+            let urlFoto = fotoIn ? fotoIn : '🍔';
+
+            produtos.push({
+                nome: nomeIn,
+                preco: Number(precoIn),
+                foto: urlFoto,
+                descricao: descIn
+            });
+            
+            localStorage.setItem('produtos_db_v4', JSON.stringify(produtos));
+            
+            document.getElementById('nome').value = '';
+            document.getElementById('preco').value = '';
+            document.getElementById('fotoLink').value = '';
+            document.getElementById('descricao').value = '';
+            
+            alert('Produto adicionado com sucesso!');
+            renderizar();
+        }
+
+        function edit(i) {
+            let n = prompt('Nome do produto:', produtos[i].nome);
+            if (n === null) return;
+            let p = prompt('Preço do produto:', produtos[i].preco);
+            if (p === null) return;
+            let f = prompt('Link da Foto (URL):', produtos[i].foto);
+            if (f === null) return;
+            let d = prompt('Descrição:', produtos[i].descricao);
+            if (d === null) return;
+
+            produtos[i].nome = n;
+            produtos[i].preco = Number(p);
+            produtos[i].foto = f;
+            produtos[i].descricao = d;
+            
+            localStorage.setItem('produtos_db_v4', JSON.stringify(produtos));
+            renderizar();
+        }
+
+        function admin() {
+            let h = '';
+            produtos.forEach((p, i) => {
+                let fotoPreview = p.foto.length < 5 ? p.foto : '🖼️';
+                h += `
+                <div class="flex justify-between items-center border-b py-2 text-sm text-gray-700">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">${fotoPreview}</span>
+                        <span>${p.nome} - R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="edit(${i})" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600 transition">Editar</button>
+                        <button onclick="excluir(${i})" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition">Excluir</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('listaAdmin').innerHTML = h;
+        }
+
+        function excluir(i) {
+            if(confirm('Tem certeza que deseja excluir este produto?')) {
+                produtos.splice(i, 1);
+                localStorage.setItem('produtos_db_v4', JSON.stringify(produtos));
+                renderizar();
+            }
+        }
+
+        function gerarQR() {
+            let mesa = document.getElementById('mesa').value;
+            let div = document.getElementById('qrcode');
+            if(!mesa) { alert('Digite o número da mesa'); return; }
+            div.innerHTML = '';
+            div.classList.remove('hidden');
+            
+            let urlLimpa = window.location.href.split('?')[0];
+            let urlMesa = urlLimpa + '?mesa=' + mesa;
+            
+            div.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlMesa)}" alt="QR Code Mesa ${mesa}" class="mx-auto my-2 border p-2 bg-white shadow-sm rounded">`;
+        }
+
+        document.getElementById('nomeLoja').value = nomeLoja;
+        document.getElementById('whatsapp').value = whatsapp;
+
+        carregarBancoDeDados();
+    </script>
+</body>
+</html>
