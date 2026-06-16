@@ -3,21 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cardápio Digital - Le Jollye Lanches</title>
+    <title>Le Jollye Lanches - Cardápio Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilização extra para a animação de saída da tela de abertura */
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease-out;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans pb-36">
+<body class="bg-gray-100 font-sans pb-36 overflow-hidden" id="body-root">
+
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col justify-center items-center bg-[#630f24] p-6 transition-all duration-500">
+        <div class="max-w-xs md:max-w-sm animate-pulse mb-6">
+            <img src="https://i.ibb.co/6RycXvK8/image-cf7286.jpg" alt="Le Jollye Lanches Logo" class="w-full h-auto rounded-2xl shadow-2xl">
+        </div>
+        <div class="flex flex-col items-center gap-3">
+            <div class="w-10 h-10 border-4 border-[#d4af37]/30 border-t-[#d4af37] rounded-full animate-spin"></div>
+            <p class="text-[#d4af37] text-sm font-semibold tracking-widest uppercase animate-bounce">Carregando...</p>
+        </div>
+    </div>
 
     <header class="relative bg-cover bg-center h-64 md:h-80 shadow-inner flex flex-col justify-between items-center p-4 text-center" 
-            style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000');">
+            style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000');">
         
         <div class="w-full flex justify-end">
             <button onclick="abrirPainel()" class="bg-black/50 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/70 transition">Painel Admin</button>
         </div>
 
         <div class="text-white drop-shadow-lg mb-2">
-            <h1 class="text-3xl md:text-4xl font-black tracking-wide uppercase">Le Jollye Lanches</h1>
-            <p id="subtituloLoja" class="bg-red-600 inline-block px-4 py-1 rounded-full text-xs font-bold mt-2 shadow-md">Faça seu pedido online</p>
+            <h1 class="text-3xl md:text-4xl font-black tracking-wide uppercase text-[#d4af37]">Le Jollye Lanches</h1>
+            <p id="subtituloLoja" class="bg-[#630f24] text-[#d4af37] border border-[#d4af37]/40 inline-block px-4 py-1 rounded-full text-xs font-bold mt-2 shadow-md">Faça seu pedido online</p>
         </div>
 
         <div class="w-full max-w-xl mb-4 px-2">
@@ -83,16 +101,29 @@
             </div>
 
             <div class="mt-6">
-                <button onclick="fecharPainel()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded w-full font-medium transition">Fechar Panel</button>
+                <button onclick="fecharPainel()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded w-full font-medium transition">Fechar Painel</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Inicialização da Tela de Splash
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('fade-out');
+                // Devolve a rolagem da página após a saída da animação
+                document.getElementById('body-root').classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 600);
+            }, 3000); // 3000 milissegundos = 3 segundos de tela de abertura
+        });
+
         const produtosPadrao = [
-            {nome:'X-Burguer', preco:22.00, foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500', descricao:'Delicioso hambúrguer artesanal com queijo derretido e molho especial.'},
-            {nome:'Batata Frita', preco:12.00, foto:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=500', descricao:'Porção de batatas fritas crocantes, sequinhas e salgadas na medida.'},
-            {nome:'Refrigerante', preco:8.00, foto:'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500', descricao:'Lata trincando de gelada para acompanhar seu lanche.'}
+            {nome:'X-Burguer', preco:20.00, foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500', descricao:'Delicioso hambúrguer artesanal com queijo derretido e molho especial.'},
+            {nome:'Batata Frita', preco:15.00, foto:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=500', descricao:'Porção de batatas fritas crocantes, sequinhas e salgadas na medida.'},
+            {nome:'Refrigerante', preco:6.00, foto:'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500', descricao:'Lata trincando de gelada para acompanhar seu lanche.'}
         ];
 
         let produtos = [];
@@ -104,14 +135,14 @@
 
         function carregarBancoDeDados() {
             try {
-                let dadosSalvos = localStorage.getItem('produtos_db_v4');
+                let dadosSalvos = localStorage.getItem('produtos_db_v5');
                 if (dadosSalvos) {
                     produtos = JSON.parse(dadosSalvos);
                 }
                 
                 if (!produtos || produtos.length === 0) {
                     produtos = produtosPadrao;
-                    localStorage.setItem('produtos_db_v4', JSON.stringify(produtosPadrao));
+                    localStorage.setItem('produtos_db_v5', JSON.stringify(produtosPadrao));
                 }
             } catch (e) {
                 produtos = produtosPadrao;
@@ -277,7 +308,7 @@
                 descricao: descIn
             });
             
-            localStorage.setItem('produtos_db_v4', JSON.stringify(produtos));
+            localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
             
             document.getElementById('nome').value = '';
             document.getElementById('preco').value = '';
@@ -303,7 +334,7 @@
             produtos[i].foto = f;
             produtos[i].descricao = d;
             
-            localStorage.setItem('produtos_db_v4', JSON.stringify(produtos));
+            localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
             renderizar();
         }
 
@@ -329,7 +360,7 @@
         function excluir(i) {
             if(confirm('Tem certeza que deseja excluir este produto?')) {
                 produtos.splice(i, 1);
-                localStorage.setItem('produtos_db_v4', JSON.stringify(produtos));
+                localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
                 renderizar();
             }
         }
