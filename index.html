@@ -14,7 +14,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans pb-36 overflow-hidden" id="body-root">
+<body class="bg-gray-100 font-sans pb-44 overflow-hidden" id="body-root">
 
     <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col justify-center items-center bg-[#630f24] p-6 transition-all duration-500">
         <div class="max-w-xs md:max-w-sm animate-pulse mb-6">
@@ -50,15 +50,24 @@
     </div>
 
     <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 z-40">
-        <div class="max-w-4xl mx-auto flex justify-between items-center mb-2">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-2">
             <div>
                 <div class="text-sm text-gray-600">Itens: <span id="itens" class="font-bold text-gray-900">0</span></div>
                 <div class="text-lg font-bold text-gray-800 mb-1">Total: R$ <span id="total">0,00</span></div>
                 <button onclick="limparCarrinho()" class="text-xs text-red-500 underline hover:text-red-700 font-semibold">Refazer / Limpar Tudo</button>
             </div>
-            <button onclick="enviarPedido()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold shadow transition">Enviar via WhatsApp</button>
+            
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end flex-1 max-w-xl justify-end">
+                <div class="flex flex-col flex-1">
+                    <label for="nomeClienteInput" class="block text-xs font-bold text-gray-600 mb-1">Seu Nome / Nome na Mesa:</label>
+                    <input type="text" id="nomeClienteInput" placeholder="Ex: João Silva" class="border border-gray-300 p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 font-medium">
+                </div>
+                <button onclick="enviarPedido()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold shadow transition h-[42px] flex items-center justify-center gap-2">
+                    💬 Enviar via WhatsApp
+                </button>
+            </div>
         </div>
-        <div class="text-center text-xs text-gray-400 font-semibold tracking-wider pt-2 border-t border-gray-100">
+        <div class="text-center text-xs text-gray-400 font-semibold tracking-wider pt-2 border-t border-gray-100 mt-2">
             BY DENIS 2026
         </div>
     </div>
@@ -129,7 +138,7 @@
         let produtos = [];
         let carrinho = [];
         let termoBusca = '';
-        
+         
         let whatsapp = localStorage.getItem('whatsapp') || '5521979883993';
         let nomeLoja = localStorage.getItem('nomeLoja') || 'Le Jollye Lanches';
 
@@ -139,7 +148,7 @@
                 if (dadosSalvos) {
                     produtos = JSON.parse(dadosSalvos);
                 }
-                
+                 
                 if (!produtos || produtos.length === 0) {
                     produtos = produtosPadrao;
                     localStorage.setItem('produtos_db_v5', JSON.stringify(produtosPadrao));
@@ -147,7 +156,7 @@
             } catch (e) {
                 produtos = produtosPadrao;
             }
-            
+             
             renderizar();
             verificarMesa();
         }
@@ -169,7 +178,7 @@
 
         function renderizar() {
             let html = '';
-            
+             
             let produtosFiltrados = produtos.filter(p => 
                 p.nome.toLowerCase().includes(termoBusca) || 
                 p.descricao.toLowerCase().includes(termoBusca)
@@ -182,7 +191,7 @@
             produtosFiltrados.forEach((p) => {
                 let indexOriginal = produtos.findIndex(item => item.nome === p.nome);
                 let qtdNoCarrinho = carrinho.filter(item => item.nome === p.nome).length;
-                
+                 
                 let exibicaoFoto = p.foto.length < 5 
                     ? `<div class="w-full h-48 bg-gray-200 flex items-center justify-center text-6xl">${p.foto}</div>`
                     : `<img src="${p.foto}" class="w-full h-48 object-cover" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591';">`;
@@ -243,31 +252,59 @@
         function enviarPedido() {
             if (carrinho.length == 0) { alert('Seu carrinho está vazio!'); return; }
             
+            // Validação Obrigatória do Nome do Cliente
+            const nomeCliente = document.getElementById('nomeClienteInput').value.trim();
+            if (!nomeCliente) { 
+                alert('Por favor, digite o seu nome antes de enviar o pedido!'); 
+                document.getElementById('nomeClienteInput').focus();
+                return; 
+            }
+             
             const urlParams = new URLSearchParams(window.location.search);
-            const mesaAtual = urlParams.get('mesa') ? `(Mesa ${urlParams.get('mesa')})` : '';
+            const mesaParam = urlParams.get('mesa');
+            const mesaAtual = mesaParam ? `(Mesa ${mesaParam})` : '';
 
-            let msg = `*Novo Pedido - ${nomeLoja}* ${mesaAtual}%0A%0A`;
-            
+            // 1. Número Único do Pedido Randômico
+            const numeroPedidoAleatorio = Math.floor(1000 + Math.random() * 9000);
+
+            // 2. Token de Validação Temporal por Hora/Minuto contra trotes de fora
+            const agora = new Date();
+            const horaStr = String(agora.getHours()).padStart(2, '0');
+            const minStr = String(agora.getMinutes()).padStart(2, '0');
+            const tokenValidacao = mesaParam ? `MESA${mesaParam}-${horaStr}${minStr}` : `${horaStr}${minStr}`;
+
+            // Estrutura Organizada e Profissional da Mensagem
+            let msg = `*🍔 NOVO PEDIDO - ${nomeLoja.toUpperCase()}* ${mesaAtual}\n`;
+            msg += `----------------------------------------\n`;
+            msg += `*Pedido:* #${numeroPedidoAleatorio}\n`;
+            msg += `*Cliente:* ${nomeCliente}\n`;
+            msg += `----------------------------------------\n\n`;
+             
             let resumo = {};
             carrinho.forEach(item => {
                 resumo[item.nome] = (resumo[item.nome] || 0) + 1;
             });
-            
+             
             for (let nome in resumo) {
                 let itemOriginal = carrinho.find(c => c.nome === nome);
                 let precoTotalItem = Number(itemOriginal.preco) * resumo[nome];
-                msg += `• ${resumo[nome]}x ${nome} - R$ ${precoTotalItem.toFixed(2).replace('.', ',')}%0A`;
+                msg += `• ${resumo[nome]}x ${nome} - R$ ${precoTotalItem.toFixed(2).replace('.', ',')}\n`;
             }
-            
+             
             let totalPedido = carrinho.reduce((a, b) => a + Number(b.preco), 0);
-            msg += `%0A*Total Geral: R$ ${totalPedido.toFixed(2).replace('.', ',')}*`;
+            msg += `\n*Total Geral: R$ ${totalPedido.toFixed(2).replace('.', ',')}*\n`;
+            msg += `----------------------------------------\n`;
+            msg += `_Emitido às ${horaStr}:${minStr}_\n`;
+            msg += `*Autenticação:* [ ${tokenValidacao} ]`;
 
             let numeroLimpo = whatsapp.replace(/\D/g, ''); 
             if (numeroLimpo.length > 0 && !numeroLimpo.startsWith('55') && numeroLimpo.length <= 11) {
                 numeroLimpo = '55' + numeroLimpo;
             }
 
-            window.open('https://wa.me/' + numeroLimpo + '?text=' + msg);
+            // CORREÇÃO CRÍTICA: O encodeURIComponent garante a abertura automática direta no app do WhatsApp
+            let urlFinal = 'https://wa.me/' + numeroLimpo + '?text=' + encodeURIComponent(msg);
+            window.open(urlFinal, '_blank');
         }
 
         function abrirPainel() {
