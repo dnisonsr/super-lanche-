@@ -6,11 +6,42 @@
     <title>Le Jollye Lanches - Cardápio Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilização extra para a animação de saída da tela de abertura */
         .fade-out {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.6s ease-out;
+        }
+
+        /* ----------------------------------------------------
+           ESTILIZAÇÃO EXCLUSIVA PARA IMPRESSÃO TÉRMICA (58mm/80mm)
+           ---------------------------------------------------- */
+        @media print {
+            /* Esconde absolutamente tudo da tela do sistema */
+            body * {
+                display: none !important;
+            }
+            /* Mostra apenas a área do cupom de impressão */
+            #area-impressao, #area-impressao * {
+                display: block !important;
+            }
+            #area-impressao {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                font-family: 'Courier New', Courier, monospace; /* Fonte padrão de impressora */
+                color: #000 !important;
+                font-size: 12px;
+                line-height: 1.2;
+                padding: 0;
+                margin: 0;
+            }
+            .quebra-pagina {
+                page-break-after: always; /* Força a impressora a avançar o papel entre as vias */
+                border-bottom: 2px dashed #000;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -30,7 +61,7 @@
             style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000');">
         
         <div class="w-full flex justify-end">
-            <button onclick="abrirPainel()" class="bg-black/50 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/70 transition">Painel Admin</button>
+            <button onclick="abrirPainel()" class="bg-black/50 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/70 transition">Painel Admin / Balcão</button>
         </div>
 
         <div class="text-white drop-shadow-lg mb-2">
@@ -40,7 +71,7 @@
 
         <div class="w-full max-w-xl mb-4 px-2">
             <div class="relative">
-                <input type="text" id="buscaInput" oninput="filtrarProdutos()" placeholder="🔍 Buscar m items..." class="w-full pl-10 pr-4 py-2.5 rounded-lg shadow-lg border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/95">
+                <input type="text" id="buscaInput" oninput="filtrarProdutos()" placeholder="🔍 Buscar itens..." class="w-full pl-10 pr-4 py-2.5 rounded-lg shadow-lg border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/95">
             </div>
         </div>
     </header>
@@ -74,7 +105,18 @@
 
     <div id="painel" class="hidden fixed inset-0 bg-black/80 overflow-auto z-50 p-4">
         <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-2xl my-4">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-gray-800">Painel Administrativo</h2>
+            <div class="flex justify-between items-center border-b pb-2 mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Painel do Balcão & Configurações</h2>
+                <button onclick="imprimirUltimoPedidoPainel()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition">🖨️ Reimprimir Último Pedido</button>
+            </div>
+
+            <div class="mb-6 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                <h3 class="font-bold text-amber-900 mb-1">Impressão Rápida no Balcão</h3>
+                <p class="text-xs text-amber-700 mb-3">Se você está no computador do balcão, clique abaixo para gerar as 2 vias do último pedido processado neste navegador.</p>
+                <button onclick="imprimirDuasViasDoLocalStorage()" class="w-full bg-slate-800 hover:bg-slate-950 text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 shadow">
+                    🖨️ IMPRIMIR 2 VIAS AGORA
+                </button>
+            </div>
 
             <div class="mb-6 bg-gray-50 p-4 rounded-lg">
                 <h3 class="font-bold mb-2 text-gray-700">Configurações da Loja</h3>
@@ -87,16 +129,14 @@
                 <h3 class="font-bold mb-2 text-gray-700">Cadastrar Novo Produto</h3>
                 <input id="nome" class="border p-2 w-full mb-2 rounded" placeholder="Nome do Produto">
                 <input id="preco" type="number" step="0.01" class="border p-2 w-full mb-2 rounded" placeholder="Preço (Ex: 20.00)">
-                
                 <label class="block text-sm font-medium text-gray-600 mb-1">Link da Foto (URL da Internet):</label>
                 <input id="fotoLink" class="border p-2 w-full mb-2 rounded" placeholder="https://site.com/foto-do-lanche.jpg">
-                
                 <textarea id="descricao" class="border p-2 w-full mb-2 rounded" placeholder="Descrição do produto"></textarea>
                 <button onclick="salvarProduto()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium w-full transition">Salvar Produto</button>
             </div>
 
             <h3 class="font-bold mb-2 text-gray-700">Produtos Cadastrados</h3>
-            <div id="listaAdmin" class="mt-2 max-h-60 overflow-y-auto border rounded p-2 bg-gray-50"></div>
+            <div id="listaAdmin" class="mt-2 max-h-40 overflow-y-auto border rounded p-2 bg-gray-50"></div>
 
             <hr class="my-6">
 
@@ -115,18 +155,16 @@
         </div>
     </div>
 
+    <div id="area-impressao"></div>
+
     <script>
-        // Inicialização da Tela de Splash
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.classList.add('fade-out');
-                // Devolve a rolagem da página após a saída da animação
                 document.getElementById('body-root').classList.remove('overflow-hidden');
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                }, 600);
-            }, 3000); // Mantém a tela por 3 segundos
+                setTimeout(() => { splash.style.display = 'none'; }, 600);
+            }, 3000);
         });
 
         const produtosPadrao = [
@@ -145,18 +183,12 @@
         function carregarBancoDeDados() {
             try {
                 let dadosSalvos = localStorage.getItem('produtos_db_v5');
-                if (dadosSalvos) {
-                    produtos = JSON.parse(dadosSalvos);
-                }
-                 
+                if (dadosSalvos) { produtos = JSON.parse(dadosSalvos); }
                 if (!produtos || produtos.length === 0) {
                     produtos = produtosPadrao;
                     localStorage.setItem('produtos_db_v5', JSON.stringify(produtosPadrao));
                 }
-            } catch (e) {
-                produtos = produtosPadrao;
-            }
-             
+            } catch (e) { produtos = produtosPadrao; }
             renderizar();
             verificarMesa();
         }
@@ -178,11 +210,7 @@
 
         function renderizar() {
             let html = '';
-             
-            let produtosFiltrados = produtos.filter(p => 
-                p.nome.toLowerCase().includes(termoBusca) || 
-                p.descricao.toLowerCase().includes(termoBusca)
-            );
+            let produtosFiltrados = produtos.filter(p => p.nome.toLowerCase().includes(termoBusca) || p.descricao.toLowerCase().includes(termoBusca));
 
             if (produtosFiltrados.length === 0) {
                 html = `<div class="col-span-full text-center text-gray-500 my-8 font-medium">Nenhum lanche encontrado... 😕</div>`;
@@ -221,27 +249,16 @@
             admin();
         }
 
-        function add(i) {
-            carrinho.push(produtos[i]);
-            atualizarTotais();
-        }
-
+        function add(i) { carrinho.push(produtos[i]); atualizarTotais(); }
         function removerUm(nomeProduto) {
             let index = carrinho.findIndex(item => item.nome === nomeProduto);
-            if (index !== -1) {
-                carrinho.splice(index, 1);
-            }
+            if (index !== -1) { carrinho.splice(index, 1); }
             atualizarTotais();
         }
-
         function limparCarrinho() {
             if (carrinho.length === 0) return;
-            if (confirm('Deseja limpar o carrinho?')) {
-                carrinho = [];
-                atualizarTotais();
-            }
+            if (confirm('Deseja limpar o carrinho?')) { carrinho = []; atualizarTotais(); }
         }
-
         function atualizarTotais() {
             document.getElementById('itens').innerText = Math.max(0, carrinho.length);
             let t = carrinho.reduce((a, b) => a + Number(b.preco), 0);
@@ -249,10 +266,10 @@
             renderizar();
         }
 
+        // Envia o pedido pelo WhatsApp e armazena os dados localmente para o caixa conseguir imprimir
         function enviarPedido() {
             if (carrinho.length == 0) { alert('Seu carrinho está vazio!'); return; }
             
-            // Validação Obrigatória do Nome do Cliente
             const nomeCliente = document.getElementById('nomeClienteInput').value.trim();
             if (!nomeCliente) { 
                 alert('Por favor, digite o seu nome antes de enviar o pedido!'); 
@@ -262,37 +279,50 @@
              
             const urlParams = new URLSearchParams(window.location.search);
             const mesaParam = urlParams.get('mesa');
-            const mesaAtual = mesaParam ? `(Mesa ${mesaParam})` : '';
+            const mesaAtual = mesaParam ? `Mesa ${mesaParam}` : 'Balcão/Delivery';
 
-            // 1. Número Único do Pedido Randômico
             const numeroPedidoAleatorio = Math.floor(1000 + Math.random() * 9000);
-
-            // 2. Token de Validação Temporal por Hora/Minuto contra trotes de fora
             const agora = new Date();
             const horaStr = String(agora.getHours()).padStart(2, '0');
             const minStr = String(agora.getMinutes()).padStart(2, '0');
             const tokenValidacao = mesaParam ? `MESA${mesaParam}-${horaStr}${minStr}` : `${horaStr}${minStr}`;
 
-            // Estrutura Organizada e Profissional da Mensagem
-            let msg = `*🍔 NOVO PEDIDO - ${nomeLoja.toUpperCase()}* ${mesaAtual}\n`;
+            // Junta os dados estruturados do pedido para salvar no LocalStorage do navegador
+            let itensArray = [];
+            let resumo = {};
+            carrinho.forEach(item => { resumo[item.nome] = (resumo[item.nome] || 0) + 1; });
+            for (let nome in resumo) {
+                let itemOrig = carrinho.find(c => c.nome === nome);
+                itensArray.push({ nome: nome, qtd: resumo[nome], precoUn: itemOrig.preco });
+            }
+
+            let dadosPedidoCompleto = {
+                loja: nomeLoja,
+                id: numeroPedidoAleatorio,
+                cliente: nomeCliente,
+                local: mesaAtual,
+                hora: `${horaStr}:${minStr}`,
+                autenticacao: tokenValidacao,
+                itens: itensArray,
+                total: carrinho.reduce((a, b) => a + Number(b.preco), 0)
+            };
+
+            // Guarda esse pedido na memória para caso o micro do balcão queira imprimir diretamente por este aparelho
+            localStorage.setItem('ultimo_pedido_gerado', JSON.stringify(dadosPedidoCompleto));
+
+            // Monta o texto legível e limpo para o WhatsApp
+            let msg = `*🍔 NOVO PEDIDO - ${nomeLoja.toUpperCase()}* (${mesaAtual})\n`;
             msg += `----------------------------------------\n`;
             msg += `*Pedido:* #${numeroPedidoAleatorio}\n`;
             msg += `*Cliente:* ${nomeCliente}\n`;
             msg += `----------------------------------------\n\n`;
              
-            let resumo = {};
-            carrinho.forEach(item => {
-                resumo[item.nome] = (resumo[item.nome] || 0) + 1;
+            itensArray.forEach(item => {
+                let totalItem = item.precoUn * item.qtd;
+                msg += `• ${item.qtd}x ${item.nome} - R$ ${totalItem.toFixed(2).replace('.', ',')}\n`;
             });
              
-            for (let nome in resumo) {
-                let itemOriginal = carrinho.find(c => c.nome === nome);
-                let precoTotalItem = Number(itemOriginal.preco) * resumo[nome];
-                msg += `• ${resumo[nome]}x ${nome} - R$ ${precoTotalItem.toFixed(2).replace('.', ',')}\n`;
-            }
-             
-            let totalPedido = carrinho.reduce((a, b) => a + Number(b.preco), 0);
-            msg += `\n*Total Geral: R$ ${totalPedido.toFixed(2).replace('.', ',')}*\n`;
+            msg += `\n*Total Geral: R$ ${dadosPedidoCompleto.total.toFixed(2).replace('.', ',')}*\n`;
             msg += `----------------------------------------\n`;
             msg += `_Emitido às ${horaStr}:${minStr}_\n`;
             msg += `*Autenticação:* [ ${tokenValidacao} ]`;
@@ -302,22 +332,68 @@
                 numeroLimpo = '55' + numeroLimpo;
             }
 
-            // CORREÇÃO CRÍTICA: O encodeURIComponent garante a abertura automática direta no app do WhatsApp
             let urlFinal = 'https://wa.me/' + numeroLimpo + '?text=' + encodeURIComponent(msg);
             window.open(urlFinal, '_blank');
+        }
+
+        /* ----------------------------------------------------
+           FUNÇÃO DE IMPRESSÃO GERADORA DE 2 VIAS (BALCÃO E COZINHA)
+           ---------------------------------------------------- */
+        function executarImpressaoDuasVias(pedido) {
+            const area = document.getElementById('area-impressao');
+            area.innerHTML = ''; // Limpa antes de montar
+
+            let totalFormatado = Number(pedido.total).toFixed(2).replace('.', ',');
+
+            // --- VIA 1: BALCÃO ---
+            let html = `<div class="quebra-pagina">`;
+            html += `<center><b style="font-size:14px;">${pedido.loja.toUpperCase()}</b><br>*** VIA DO BALCÃO ***</center><br>`;
+            html += `<b>PEDIDO:</b> #${pedido.id}<br>`;
+            html += `<b>LOCAL:</b> ${pedido.local}<br>`;
+            html += `<b>CLIENTE:</b> ${pedido.cliente}<br>`;
+            html += `<b>HORA:</b> ${pedido.hora}<br>`;
+            html += `----------------------------------------<br>`;
+            pedido.itens.forEach(item => {
+                let totalItem = (item.precoUn * item.qtd).toFixed(2).replace('.', ',');
+                html += `${item.qtd}x ${item.nome.padEnd(22, ' ')} R$ ${totalItem}<br>`;
+            });
+            html += `----------------------------------------<br>`;
+            html += `<b>TOTAL GERAL: R$ ${totalFormatado}</b><br><br>`;
+            html += `<center>Autenticação: ${pedido.autenticacao}</center>`;
+            html += `</div>`;
+
+            // --- VIA 2: COZINHA (Sem os Preços para focar na produção) ---
+            html += `<div>`;
+            html += `<center><b style="font-size:16px;">*** VIA COZINHA ***</b><br><b style="font-size:14px;">${pedido.local.toUpperCase()}</b></center><br>`;
+            html += `<b>PEDIDO:</b> #${pedido.id} | <b>HORA:</b> ${pedido.hora}<br>`;
+            html += `<b>CLIENTE:</b> ${pedido.cliente}<br>`;
+            html += `----------------------------------------<br>`;
+            pedido.itens.forEach(item => {
+                html += `<span style="font-size:15px; font-weight:bold;">[ ] ${item.qtd}x - ${item.nome}</span><br>`;
+            });
+            html += `----------------------------------------<br><br><br><br>`;
+            html += `</div>`;
+
+            area.innerHTML = html;
+            window.print(); // Chama o driver de impressão do sistema operacional
+        }
+
+        function imprimirUltimoPedidoPainel() {
+            let dados = localStorage.getItem('ultimo_pedido_gerado');
+            if(dados) { executarImpressaoDuasVias(JSON.parse(dados)); } 
+            else { alert('Nenhum pedido recente encontrado na memória deste aparelho.'); }
+        }
+
+        function imprimirDuasViasDoLocalStorage() {
+            imprimirUltimoPedidoPainel();
         }
 
         function abrirPainel() {
             if (prompt('Digite a senha de administrador:') === 'admin') {
                 document.getElementById('painel').classList.remove('hidden');
-            } else {
-                alert('Senha incorreta!');
-            }
+            } else { alert('Senha incorreta!'); }
         }
-
-        function fecharPainel() {
-            document.getElementById('painel').classList.add('hidden');
-        }
+        function fecharPainel() { document.getElementById('painel').classList.add('hidden'); }
 
         function salvarConfig() {
             nomeLoja = document.getElementById('nomeLoja').value || nomeLoja;
@@ -333,44 +409,24 @@
             let precoIn = document.getElementById('preco').value;
             let fotoIn = document.getElementById('fotoLink').value.trim();
             let descIn = document.getElementById('descricao').value;
-
             if(!nomeIn || !precoIn) { alert('Por favor, preencha nome e preço.'); return; }
-
             let urlFoto = fotoIn ? fotoIn : '🍔';
-
-            produtos.push({
-                nome: nomeIn,
-                preco: Number(precoIn),
-                foto: urlFoto,
-                descricao: descIn
-            });
-            
+            produtos.push({ nome: nomeIn, preco: Number(precoIn), foto: urlFoto, descricao: descIn });
             localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
-            
             document.getElementById('nome').value = '';
             document.getElementById('preco').value = '';
             document.getElementById('fotoLink').value = '';
             document.getElementById('descricao').value = '';
-            
             alert('Produto adicionado com sucesso!');
             renderizar();
         }
 
         function edit(i) {
-            let n = prompt('Nome do produto:', produtos[i].nome);
-            if (n === null) return;
-            let p = prompt('Preço do produto:', produtos[i].preco);
-            if (p === null) return;
-            let f = prompt('Link da Foto (URL):', produtos[i].foto);
-            if (f === null) return;
-            let d = prompt('Descrição:', produtos[i].descricao);
-            if (d === null) return;
-
-            produtos[i].nome = n;
-            produtos[i].preco = Number(p);
-            produtos[i].foto = f;
-            produtos[i].descricao = d;
-            
+            let n = prompt('Nome do produto:', produtos[i].nome); if (n === null) return;
+            let p = prompt('Preço do produto:', produtos[i].preco); if (p === null) return;
+            let f = prompt('Link da Foto (URL):', produtos[i].foto); if (f === null) return;
+            let d = prompt('Descrição:', produtos[i].descricao); if (d === null) return;
+            produtos[i].nome = n; produtos[i].preco = Number(p); produtos[i].foto = f; produtos[i].descricao = d;
             localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
             renderizar();
         }
@@ -381,10 +437,7 @@
                 let fotoPreview = p.foto.length < 5 ? p.foto : '🖼️';
                 h += `
                 <div class="flex justify-between items-center border-b py-2 text-sm text-gray-700">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">${fotoPreview}</span>
-                        <span>${p.nome} - R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span>
-                    </div>
+                    <div class="flex items-center gap-2"><span>${fotoPreview}</span><span>${p.nome} - R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span></div>
                     <div class="flex gap-2">
                         <button onclick="edit(${i})" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600 transition">Editar</button>
                         <button onclick="excluir(${i})" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition">Excluir</button>
@@ -406,18 +459,14 @@
             let mesa = document.getElementById('mesa').value;
             let div = document.getElementById('qrcode');
             if(!mesa) { alert('Digite o número da mesa'); return; }
-            div.innerHTML = '';
-            div.classList.remove('hidden');
-            
+            div.innerHTML = ''; div.classList.remove('hidden');
             let urlLimpa = window.location.href.split('?')[0];
             let urlMesa = urlLimpa + '?mesa=' + mesa;
-            
             div.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlMesa)}" alt="QR Code Mesa ${mesa}" class="mx-auto my-2 border p-2 bg-white shadow-sm rounded">`;
         }
 
         document.getElementById('nomeLoja').value = nomeLoja;
         document.getElementById('whatsapp').value = whatsapp;
-
         carregarBancoDeDados();
     </script>
 </body>
