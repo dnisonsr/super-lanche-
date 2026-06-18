@@ -6,6 +6,8 @@
     <title>Cardápio Digital</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRCode library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f5f2ed; }
@@ -31,6 +33,8 @@
         .item-carrinho { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; }
         .qtd-btn { background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
         .qtd-btn:hover { background: #ddd; }
+        .qr-container { display: flex; justify-content: center; margin: 8px 0; }
+        .qr-container canvas { max-width: 120px; height: auto; }
     </style>
 </head>
 <body>
@@ -143,7 +147,7 @@
             <div id="lista-produtos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- MESAS -->
+        <!-- MESAS (COM QR CODE) -->
         <div id="tab-mesas" class="tab-content hidden">
             <form onsubmit="salvarMesa(event)" class="bg-white p-4 rounded-xl shadow mb-4 flex gap-2 flex-wrap">
                 <input type="number" id="numero-mesa" placeholder="Número" class="admin-input flex-1 min-w-[100px]" required>
@@ -229,34 +233,24 @@ function fecharSplash() {
     const splash = document.getElementById('splash');
     if (splash) {
         splash.classList.add('hidden');
-        // Remove do DOM após a transição
         setTimeout(() => { splash.style.display = 'none'; }, 500);
     }
 }
 
 // Inicialização da página
 document.addEventListener('DOMContentLoaded', function() {
-    // Define o nome da loja nos cabeçalhos
     const nome = getStoreName();
     document.getElementById('splash-nome').textContent = nome;
     document.getElementById('header-nome').textContent = nome;
     document.title = `Cardápio - ${nome}`;
-
-    // Fecha o splash após 2 segundos
     setTimeout(fecharSplash, 2000);
-
-    // Inicializa o sistema
     iniciarMesa();
     renderizarCardapio();
     atualizarCarrinhoUI();
-
-    // Esconde modais
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('modal-carrinho').classList.add('hidden');
 });
-
-// Fallback: se o DOMContentLoaded falhar, fecha em 3s
-setTimeout(fecharSplash, 3000);
+setTimeout(fecharSplash, 3000); // fallback
 
 // =====================================================
 // MESA
@@ -431,7 +425,6 @@ function renderizarCardapio() {
         html += `</div></div>`;
     });
 
-    // Produtos sem categoria
     const semCat = produtos.filter(p => !categorias.some(c => c.id === p.categoria));
     if (semCat.length > 0) {
         html += `<div class="mb-6"><h2 class="text-2xl font-bold text-marrom border-b-2 border-ouro pb-2 mb-4">Diversos</h2><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">`;
@@ -646,7 +639,6 @@ async function salvarProduto(e) {
     }
     setData('produtos', prods);
 
-    // Limpar
     document.getElementById('nome-produto').value = '';
     document.getElementById('preco-produto').value = '';
     document.getElementById('imagem-url').value = '';
@@ -694,18 +686,84 @@ function excluirProduto(id) {
 }
 
 // =====================================================
-// ADMIN - MESAS
+// ADMIN - MESAS (COM QR CODE)
 // =====================================================
 function renderizarMesas() {
     const container = document.getElementById('lista-mesas');
     const mesas = getData('mesas');
-    if (!mesas.length) { container.innerHTML = '<div class="col-span-full text-gray-400">Nenhuma mesa</div>'; return; }
-    container.innerHTML = mesas.map(m => `
-        <div class="bg-white p-4 rounded-xl shadow flex justify-between items-center">
-            <div><span class="font-bold">Mesa ${m.numero}</span><span class="text-xs text-gray-400 ml-2">${m.codigo}</span></div>
-            <div><button onclick="excluirMesa('${m.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></div>
+    if (!mesas.length) {
+        container.innerHTML = '<div class="col-span-full text-gray-400">Nenhuma mesa cadastrada.</div>';
+        return;
+    }
+
+    container.innerHTML = mesas.map(m => {
+        const link = `${window.location.origin}${window.location.pathname}?mesa=${m.id}`;
+        return `
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-100">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="font-bold text-lg">Mesa ${m.numero}</span>
+                    <p class="text-xs text-gray-400">Código: ${m.codigo}</p>
+                </div>
+                <button onclick="excluirMesa('${m.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="qr-container" id="qr-${m.id}">
+                <!-- QR Code será gerado aqui -->
+                <p class="text-xs text-gray-400">Carregando QR Code...</p>
+            </div>
+            <div class="mt-2 flex justify-center gap-3">
+                <button onclick="gerarQRCode('${m.id}')" class="text-sm text-blue-500 hover:underline">Gerar QR Code</button>
+                <a href="${link}" target="_blank" class="text-sm text-green-500 hover:underline">Abrir link</a>
+            </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
+
+    // Gera QR Codes para cada mesa com pequeno atraso
+    mesas.forEach(m => {
+        setTimeout(() => {
+            gerarQRCode(m.id);
+        }, 100);
+    });
+}
+
+function gerarQRCode(id) {
+    const container = document.getElementById(`qr-${id}`);
+    if (!container) return;
+
+    // Limpa o container mantendo apenas a referência
+    container.innerHTML = '';
+
+    const mesas = getData('mesas');
+    const mesa = mesas.find(m => m.id === id);
+    if (!mesa) {
+        container.innerHTML = '<p class="text-xs text-red-400">Mesa não encontrada.</p>';
+        return;
+    }
+
+    const link = `${window.location.origin}${window.location.pathname}?mesa=${mesa.id}`;
+
+    // Verifica se a biblioteca QRCode está disponível
+    if (typeof QRCode === 'undefined') {
+        container.innerHTML = `
+            <p class="text-xs text-amber-600">Biblioteca QR Code não carregada.</p>
+            <button onclick="gerarQRCode('${id}')" class="text-xs text-blue-500 underline mt-1">Tentar novamente</button>
+        `;
+        return;
+    }
+
+    try {
+        new QRCode(container, {
+            text: link,
+            width: 120,
+            height: 120,
+            colorDark: '#630f24',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    } catch (e) {
+        container.innerHTML = `<p class="text-xs text-red-400">Erro ao gerar QR Code: ${e.message}</p>`;
+    }
 }
 
 function salvarMesa(e) {
@@ -729,7 +787,7 @@ function salvarMesa(e) {
 }
 
 function excluirMesa(id) {
-    if (!confirm('Excluir?')) return;
+    if (!confirm('Excluir esta mesa?')) return;
     let mesas = getData('mesas').filter(m => m.id !== id);
     setData('mesas', mesas);
     renderizarMesas();
