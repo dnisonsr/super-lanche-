@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cardápio Digital</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Usando Tailwind via CDN com aviso ignorado (apenas para estilo) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QRCode library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -35,6 +35,10 @@
         .qtd-btn:hover { background: #ddd; }
         .qr-container { display: flex; justify-content: center; margin: 8px 0; }
         .qr-container canvas { max-width: 120px; height: auto; }
+        .backup-btn { background: #4a6fa5; color: white; font-weight: 600; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; }
+        .backup-btn:hover { background: #3a5a8a; }
+        .import-btn { background: #28a745; color: white; font-weight: 600; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; }
+        .import-btn:hover { background: #1e7e34; }
     </style>
 </head>
 <body>
@@ -62,7 +66,11 @@
     </header>
 
     <div class="p-4 max-w-4xl mx-auto" id="categorias-container"></div>
-    <div id="sem-produtos" class="text-center text-gray-400 p-8 hidden">Nenhum produto cadastrado.</div>
+    <div id="sem-produtos" class="text-center text-gray-400 p-8 hidden">
+        <i class="fas fa-utensils text-4xl mb-3 block"></i>
+        <p>Nenhum produto cadastrado neste dispositivo.</p>
+        <p class="text-sm text-gray-500 mt-2">Para ver os produtos cadastrados no PC, use a função <strong>"Importar dados"</strong> no painel admin.</p>
+    </div>
 
     <!-- Carrinho flutuante -->
     <div id="carrinho-flutuante" class="fixed bottom-6 right-6 bg-marrom text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hidden" onclick="abrirCarrinho()">
@@ -101,7 +109,12 @@
 <section id="view-admin" class="view bg-gray-50 min-h-screen pb-20">
     <header class="bg-marrom text-white p-4 flex justify-between items-center sticky top-0 z-10">
         <h1 class="text-xl font-bold"><i class="fas fa-cog"></i> Painel Admin</h1>
-        <button onclick="sairAdmin()" class="bg-white/20 px-4 py-2 rounded-full text-sm">Sair</button>
+        <div class="flex items-center gap-2">
+            <button onclick="exportarDados()" class="backup-btn text-sm"><i class="fas fa-download"></i> Exportar</button>
+            <button onclick="document.getElementById('import-file').click()" class="import-btn text-sm"><i class="fas fa-upload"></i> Importar</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importarDados(event)">
+            <button onclick="sairAdmin()" class="bg-white/20 px-4 py-2 rounded-full text-sm">Sair</button>
+        </div>
     </header>
 
     <div class="p-4 max-w-6xl mx-auto">
@@ -135,7 +148,7 @@
                     <label class="admin-label">OU faça upload (convertido para Base64)</label>
                     <input type="file" id="upload-imagem" accept="image/*" class="admin-input p-2">
                     <div id="preview-box" class="mt-2 hidden"><img id="preview-img" src="#" alt="Preview"></div>
-                    <p class="text-xs text-gray-400 mt-1">A imagem será redimensionada para 300x300.</p>
+                    <p class="text-xs text-gray-400 mt-1">A imagem será redimensionada para 300x300 e convertida para Base64.</p>
                 </div>
                 <div class="md:col-span-2"><label class="admin-label">Descrição</label><textarea id="descricao-produto" rows="2" class="admin-input"></textarea></div>
                 <input type="hidden" id="edit-produto-id">
@@ -147,7 +160,7 @@
             <div id="lista-produtos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- MESAS (COM QR CODE) -->
+        <!-- MESAS -->
         <div id="tab-mesas" class="tab-content hidden">
             <form onsubmit="salvarMesa(event)" class="bg-white p-4 rounded-xl shadow mb-4 flex gap-2 flex-wrap">
                 <input type="number" id="numero-mesa" placeholder="Número" class="admin-input flex-1 min-w-[100px]" required>
@@ -199,6 +212,47 @@ function getConfig() {
 function setConfig(c) { localStorage.setItem('config', JSON.stringify(c)); }
 function getWhatsapp() { return getConfig().whatsapp || ''; }
 function getStoreName() { return getConfig().storeName || 'Le Jollye'; }
+
+// =====================================================
+// EXPORTAÇÃO E IMPORTAÇÃO DE DADOS (BACKUP)
+// =====================================================
+function exportarDados() {
+    const dados = {
+        categorias: getData('categorias'),
+        produtos: getData('produtos'),
+        mesas: getData('mesas'),
+        pedidos: getData('pedidos'),
+        config: getConfig()
+    };
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `cardapio_backup_${new Date().toISOString().slice(0,10)}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+function importarDados(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const dados = JSON.parse(e.target.result);
+            if (dados.categorias) setData('categorias', dados.categorias);
+            if (dados.produtos) setData('produtos', dados.produtos);
+            if (dados.mesas) setData('mesas', dados.mesas);
+            if (dados.pedidos) setData('pedidos', dados.pedidos);
+            if (dados.config) setConfig(dados.config);
+            alert('✅ Dados importados com sucesso! Recarregue a página.');
+            location.reload();
+        } catch (err) {
+            alert('❌ Erro ao importar: arquivo inválido.');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // limpa o input
+}
 
 // =====================================================
 // COMPRESSÃO DE IMAGEM (300x300, qualidade 0.7)
@@ -708,7 +762,6 @@ function renderizarMesas() {
                 <button onclick="excluirMesa('${m.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
             </div>
             <div class="qr-container" id="qr-${m.id}">
-                <!-- QR Code será gerado aqui -->
                 <p class="text-xs text-gray-400">Carregando QR Code...</p>
             </div>
             <div class="mt-2 flex justify-center gap-3">
@@ -719,7 +772,6 @@ function renderizarMesas() {
         `;
     }).join('');
 
-    // Gera QR Codes para cada mesa com pequeno atraso
     mesas.forEach(m => {
         setTimeout(() => {
             gerarQRCode(m.id);
@@ -730,28 +782,18 @@ function renderizarMesas() {
 function gerarQRCode(id) {
     const container = document.getElementById(`qr-${id}`);
     if (!container) return;
-
-    // Limpa o container mantendo apenas a referência
     container.innerHTML = '';
-
     const mesas = getData('mesas');
     const mesa = mesas.find(m => m.id === id);
     if (!mesa) {
         container.innerHTML = '<p class="text-xs text-red-400">Mesa não encontrada.</p>';
         return;
     }
-
     const link = `${window.location.origin}${window.location.pathname}?mesa=${mesa.id}`;
-
-    // Verifica se a biblioteca QRCode está disponível
     if (typeof QRCode === 'undefined') {
-        container.innerHTML = `
-            <p class="text-xs text-amber-600">Biblioteca QR Code não carregada.</p>
-            <button onclick="gerarQRCode('${id}')" class="text-xs text-blue-500 underline mt-1">Tentar novamente</button>
-        `;
+        container.innerHTML = `<p class="text-xs text-amber-600">Biblioteca QR Code não carregada.</p><button onclick="gerarQRCode('${id}')" class="text-xs text-blue-500 underline mt-1">Tentar novamente</button>`;
         return;
     }
-
     try {
         new QRCode(container, {
             text: link,
