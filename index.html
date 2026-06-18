@@ -86,7 +86,7 @@
                 <div class="flex flex-col flex-1">
                     <label for="selecaoMesaCliente" class="block text-xs font-bold text-gray-600 mb-1">Selecione sua Mesa ou Identificação:</label>
                     <select id="selecaoMesaCliente" class="border border-gray-300 p-2.5 rounded-lg text-sm bg-gray-50 font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        </select>
+                    </select>
                 </div>
                 <button onclick="enviarPedido()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold shadow transition h-[42px] flex items-center justify-center gap-2">
                     💬 Enviar Pedido via WhatsApp
@@ -170,7 +170,6 @@
             atualizarSelectMesas();
             renderizarProdutos(listaProdutos);
 
-            // Oculta tela de carregamento suavemente
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) { splash.classList.add('fade-out'); setTimeout(() => splash.remove(), 600); }
@@ -196,129 +195,4 @@
                     <div class="flex-1 min-w-0">
                         <h3 class="text-base font-bold text-gray-800 truncate">${prod.nome}</h3>
                         <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${prod.descricao}</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-sm font-extrabold text-green-600">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
-                            <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                                <button onclick="alterarQuantidade(${prod.id}, -1)" class="w-7 h-7 bg-white text-gray-800 rounded-md font-bold shadow-sm hover:bg-gray-200 transition">-</button>
-                                <span id="qtd-${prod.id}" class="text-sm font-bold w-4 text-center">${qtd}</span>
-                                <button onclick="alterarQuantidade(${prod.id}, 1)" class="w-7 h-7 bg-[#630f24] text-white rounded-md font-bold shadow-sm hover:opacity-90 transition">+</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function alterarQuantidade(id, mudanca) {
-            const produto = listaProdutos.find(p => p.id === id);
-            if (!carrinho[id]) carrinho[id] = { ...produto, grandmother: 0, quantidade: 0 };
-            carrinho[id].quantidade += mudanca;
-
-            if (carrinho[id].quantidade <= 0) {
-                delete carrinho[id];
-                if(document.getElementById(`qtd-${id}`)) document.getElementById(`qtd-${id}`).innerText = '0';
-            } else {
-                if(document.getElementById(`qtd-${id}`)) document.getElementById(`qtd-${id}`).innerText = carrinho[id].quantidade;
-            }
-            atualizarResumoCarrinho();
-        }
-
-        function atualizarResumoCarrinho() {
-            let totalItens = 0, valorTotal = 0;
-            for (let id in carrinho) {
-                totalItens += carrinho[id].quantidade;
-                valorTotal += carrinho[id].quantidade * carrinho[id].preco;
-            }
-            document.getElementById('itens').innerText = totalItens;
-            document.getElementById('total').innerText = valorTotal.toFixed(2).replace('.', ',');
-        }
-
-        function atualizarSelectMesas() {
-            const select = document.getElementById('selecaoMesaCliente');
-            select.innerHTML = '';
-            listaMesas.forEach(mesa => {
-                select.innerHTML += `<option value="${mesa}">${mesa}</option>`;
-            });
-        }
-
-        function filtrarProdutos() {
-            const termo = document.getElementById('buscaInput').value.toLowerCase();
-            const filtrados = listaProdutos.filter(p => p.nome.toLowerCase().includes(termo) || p.descricao.toLowerCase().includes(termo));
-            renderizarProdutos(filtrados);
-        }
-
-        /* INVISÍVEL NO CARDÁPIO GERAL */
-        function limparCarrinho() {
-            carrinho = {};
-            atualizarResumoCarrinho();
-            listaProdutos.forEach(p => { if(document.getElementById(`qtd-${p.id}`)) document.getElementById(`qtd-${p.id}`).innerText = '0'; });
-        }
-
-        function enviarPedido() {
-            const mesaEscolhida = document.getElementById('selecaoMesaCliente').value;
-            const chavesCarrinho = Object.keys(carrinho);
-            
-            if (chavesCarrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
-
-            if (localStorage.getItem('travaGeoLocalizacao') === 'sim') {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        () => prosseguirEnvio(mesaEscolhida, chavesCarrinho),
-                        () => { alert("⚠️ PEDIDO BLOQUEADO: Ative a localização no seu navegador."); }
-                    );
-                } else {
-                    prosseguirEnvio(mesaEscolhida, chavesCarrinho);
-                }
-            } else {
-                prosseguirEnvio(mesaEscolhida, chavesCarrinho);
-            }
-        }
-
-        function prosseguirEnvio(mesa, chaves) {
-            const agora = new Date();
-            const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            const codigoPedido = "LJ-" + Math.floor(1000 + Math.random() * 9000);
-
-            let mensagem = `*🍔 PEDIDO RECEBIDO - LE JOLLYE* \n\n`;
-            mensagem += `*CÓDIGO:* ${codigoPedido}\n`;
-            mensagem += `*LOCAL/MESA:* ${mesa}\n`;
-            mensagem += `*HORÁRIO:* ${horaFormatada}\n`;
-            mensagem += `----------------------------------\n`;
-
-            let totalGeral = 0, itensSalvar = [];
-
-            chaves.forEach(id => {
-                const item = carrinho[id];
-                const subtotal = item.quantidade * item.preco;
-                totalGeral += subtotal;
-                mensagem += `${item.quantidade}x _${item.nome}_\n`;
-                itensSalvar.push({ nome: item.nome, quantidade: item.quantidade, subtotal: subtotal });
-            });
-
-            mensagem += `----------------------------------\n`;
-            mensagem += `*Total: R$ ${totalGeral.toFixed(2).replace('.', ',')}*\n\n`;
-
-            let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
-            historico.unshift({ id: Date.now(), codigo: codigoPedido, data: agora.toLocaleString('pt-BR'), cliente: mesa, itens: itensSalvar, total: totalGeral });
-            localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-
-            const numeroTelefone = localStorage.getItem('numeroWhatsAppConfig') || "5521999999999";
-            window.open(`https://api.whatsapp.com/send?phone=${numeroTelefone}&text=${encodeURIComponent(mensagem)}`, '_blank');
-            limparCarrinho();
-        }
-
-        function abrirPainelComSenha() {
-            if (prompt("Digite a senha do painel:") === SENHA_PROMPT) {
-                document.getElementById('modal-painel').classList.remove('hidden');
-                document.getElementById('secao-dinamica-painel').classList.add('hidden');
-            } else { alert("Senha inválida!"); }
-        }
-        function fecharPainel() { document.getElementById('modal-painel').classList.add('hidden'); }
-
-        function visualizarHistorico() {
-            const secao = document.getElementById('secao-dinamica-painel');
-            document.getElementById('titulo-secao-dinamica').innerText = "📋 Últimos Pedidos no Balcão";
-            secao.classList.remove('hidden');
-
-            const container = document.getElementById('
+                        <div class="flex justify-between items-center mt-
