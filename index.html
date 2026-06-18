@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
-        /* Estilos (mesmos de antes) */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
         * { font-family: 'Poppins', sans-serif; }
         body { -webkit-tap-highlight-color: transparent; background: #f8f5f0; padding-bottom: 80px; }
@@ -81,6 +80,7 @@
             font-weight: bold;
         }
 
+        /* Modal do carrinho */
         .modal-carrinho {
             position: fixed;
             inset: 0;
@@ -127,12 +127,13 @@
         <img src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" class="splash-logo rounded-full shadow-2xl mb-6 border-4 border-[#d4af37]" alt="Logo">
         <div class="flex flex-col items-center gap-2">
             <div class="w-12 h-12 border-4 border-[#d4af37]/20 border-t-[#d4af37] rounded-full animate-spin"></div>
-            <p id="splash-store-name" class="text-[#d4af37] font-bold tracking-widest uppercase text-xs mt-2">Le Jollye</p>
+            <p id="splash-store-name" class="text-[#d4af37] font-bold tracking-widest uppercase text-xs mt-2">Carregando...</p>
         </div>
     </div>
 
-    <!-- ==================== VIEW PÚBLICA ==================== -->
+    <!-- ==================== VIEW PÚBLICA (CARDÁPIO + MESA) ==================== -->
     <section id="view-public" class="view active">
+        <!-- Header -->
         <header class="bg-[#630f24] text-white p-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
             <div class="absolute top-4 right-4 z-10">
                 <button onclick="abrirLogin()" class="bg-black/20 p-3 rounded-full hover:bg-black/40 transition-colors">
@@ -151,15 +152,19 @@
             </div>
         </header>
 
+        <!-- Conteúdo do cardápio -->
         <div class="p-4 max-w-4xl mx-auto">
-            <div id="categorias-container" class="space-y-8"></div>
+            <div id="categorias-container" class="space-y-8">
+                <!-- Renderizado via JS -->
+            </div>
             <div id="sem-produtos" class="text-center text-gray-500 mt-12 hidden">
                 <i class="fas fa-utensils text-4xl mb-3 block"></i>
                 <p>Nenhum produto cadastrado ainda.</p>
             </div>
         </div>
 
-        <div id="carrinho-flutuante" onclick="abrirCarrinho()" class="hidden">
+        <!-- Carrinho flutuante -->
+        <div id="carrinho-flutuante" class="hidden" onclick="abrirCarrinho()">
             <i class="fas fa-shopping-cart text-2xl"></i>
             <span class="badge" id="carrinho-qtd">0</span>
         </div>
@@ -172,7 +177,9 @@
                 <h2 class="text-2xl font-bold text-[#630f24]">Seu Pedido</h2>
                 <button onclick="fecharCarrinho()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
             </div>
-            <div id="carrinho-items" class="space-y-2 mb-4"></div>
+            <div id="carrinho-items" class="space-y-2 mb-4">
+                <!-- Itens dinâmicos -->
+            </div>
             <div class="border-t pt-3 flex justify-between font-bold text-lg">
                 <span>Total:</span>
                 <span id="carrinho-total">R$ 0,00</span>
@@ -232,14 +239,13 @@
                     <i class="fas fa-clipboard-list mr-1"></i> Pedidos
                     <span id="badge-pedidos-pendentes" class="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 ml-1"></span>
                 </button>
-                <!-- NOVA ABA: CONFIGURAÇÕES -->
-                <button class="tab-admin px-4 py-2 font-semibold text-gray-500 border-b-2 border-transparent" data-tab="config" onclick="trocarTabAdmin('config')">
+                <!-- NOVA ABA CONFIGURAÇÕES -->
+                <button class="tab-admin px-4 py-2 font-semibold text-gray-500 border-b-2 border-transparent" data-tab="configuracoes" onclick="trocarTabAdmin('configuracoes')">
                     <i class="fas fa-cog mr-1"></i> Configurações
                 </button>
             </div>
 
-            <!-- CONTEÚDO DAS ABAS -->
-
+            <!-- Conteúdo das abas -->
             <!-- CATEGORIAS -->
             <div id="tab-categorias" class="tab-content">
                 <div class="bg-white rounded-xl shadow p-4 mb-6">
@@ -312,38 +318,70 @@
                 <div id="lista-pedidos" class="space-y-4"></div>
             </div>
 
-            <!-- CONFIGURAÇÕES (NOVA ABA) -->
-            <div id="tab-config" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow p-6">
-                    <h3 class="font-bold text-lg mb-4"><i class="fab fa-whatsapp text-green-500 mr-2"></i> Configuração do WhatsApp</h3>
-                    <p class="text-gray-500 text-sm mb-4">Defina o número de telefone que receberá os pedidos enviados pelos clientes.</p>
-                    <form id="form-config" onsubmit="salvarConfig(event)">
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Número do WhatsApp (com DDD e país)</label>
-                                <input type="text" id="whatsapp-number" placeholder="Ex: 5511999999999" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" required>
-                                <p class="text-xs text-gray-400 mt-1">Informe apenas números, sem espaços ou caracteres especiais.</p>
-                            </div>
-                            <button type="submit" class="btn-gold px-6 py-3 rounded-xl transition self-end">Salvar</button>
+            <!-- CONFIGURAÇÕES -->
+            <div id="tab-configuracoes" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto">
+                    <h3 class="font-bold text-2xl text-[#630f24] mb-6">Configurações Gerais</h3>
+                    <form id="form-config" onsubmit="salvarConfiguracoes(event)">
+                        <div class="mb-4">
+                            <label class="block font-medium text-gray-700 mb-1">📱 Número do WhatsApp (para receber pedidos)</label>
+                            <input type="tel" id="whatsapp-number" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" placeholder="5511999999999 (código país + DDD + número)" required>
+                            <p class="text-xs text-gray-400 mt-1">Exemplo: 5511999999999 (Brasil, São Paulo)</p>
                         </div>
+                        <div class="mb-4">
+                            <label class="block font-medium text-gray-700 mb-1">🏪 Nome da Loja (opcional)</label>
+                            <input type="text" id="store-name-config" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" placeholder="Nome da sua loja">
+                        </div>
+                        <button type="submit" class="btn-gold px-6 py-3 rounded-xl transition w-full">Salvar Configurações</button>
                     </form>
-                    <div id="config-status" class="mt-3 text-sm"></div>
+                    <div id="config-status" class="mt-4 text-sm text-green-600 hidden">Configurações salvas com sucesso!</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ==================== SCRIPT ==================== -->
+    <!-- ==================== SCRIPT PRINCIPAL ==================== -->
     <script>
         // ============================================================
-        // CONFIGURAÇÕES
+        // CONFIGURAÇÕES PADRÃO
         // ============================================================
-        const STORE_NAME = 'Le Jollye';
         const ADMIN_PASSWORD = 'admin123';
-        const BASE_URL = window.location.origin + window.location.pathname;
 
         // ============================================================
-        // FUNÇÕES DE ACESSO AO LOCALSTORAGE
+        // FUNÇÕES DE CONFIGURAÇÃO (localStorage)
+        // ============================================================
+        function getConfig() {
+            return JSON.parse(localStorage.getItem('config')) || {};
+        }
+
+        function setConfig(config) {
+            localStorage.setItem('config', JSON.stringify(config));
+        }
+
+        function getWhatsappNumber() {
+            const config = getConfig();
+            return config.whatsapp || '5511999999999'; // fallback
+        }
+
+        function getStoreName() {
+            const config = getConfig();
+            return config.storeName || 'Le Jollye';
+        }
+
+        function setWhatsappNumber(num) {
+            const config = getConfig();
+            config.whatsapp = num;
+            setConfig(config);
+        }
+
+        function setStoreName(name) {
+            const config = getConfig();
+            config.storeName = name;
+            setConfig(config);
+        }
+
+        // ============================================================
+        // DADOS (categorias, produtos, mesas, pedidos)
         // ============================================================
         function getCategorias() { return JSON.parse(localStorage.getItem('categorias')) || []; }
         function setCategorias(cats) { localStorage.setItem('categorias', JSON.stringify(cats)); }
@@ -353,16 +391,6 @@
         function setMesas(mesas) { localStorage.setItem('mesas', JSON.stringify(mesas)); }
         function getPedidos() { return JSON.parse(localStorage.getItem('pedidos')) || []; }
         function setPedidos(peds) { localStorage.setItem('pedidos', JSON.stringify(peds)); }
-        
-        // ============================================================
-        // CONFIGURAÇÃO DO WHATSAPP (NOVA)
-        // ============================================================
-        function getWhatsAppNumber() {
-            return localStorage.getItem('whatsapp_number') || ''; // retorna vazio se não configurado
-        }
-        function setWhatsAppNumber(num) {
-            localStorage.setItem('whatsapp_number', num);
-        }
 
         // ============================================================
         // SPLASH
@@ -375,12 +403,17 @@
             }
         }
         window.addEventListener('load', () => {
-            document.querySelectorAll('#splash-store-name, #header-store-name').forEach(el => el.textContent = STORE_NAME);
-            document.title = `Cardápio Digital - ${STORE_NAME}`;
+            const storeName = getStoreName();
+            document.querySelectorAll('#splash-store-name, #header-store-name').forEach(el => el.textContent = storeName);
+            document.title = `Cardápio Digital - ${storeName}`;
             setTimeout(fecharSplash, 600);
             iniciarMesa();
             renderizarCardapio();
             atualizarCarrinhoUI();
+            // Preencher configurações no admin se estiver logado
+            if (document.getElementById('view-admin').classList.contains('active')) {
+                carregarConfiguracoes();
+            }
         });
         setTimeout(fecharSplash, 2500);
 
@@ -493,16 +526,15 @@
         }
 
         // ============================================================
-        // ENVIAR PEDIDO (USANDO NÚMERO CONFIGURADO)
+        // ENVIAR PEDIDO POR WHATSAPP (agora com número configurável)
         // ============================================================
         function enviarPedido() {
             if (carrinho.length === 0) return;
             if (!mesaAtual) { alert('Mesa não identificada.'); return; }
 
-            // Verificar se o número do WhatsApp está configurado
-            const whatsappNumber = getWhatsAppNumber();
-            if (!whatsappNumber) {
-                alert('O número do WhatsApp para receber pedidos não foi configurado. Peça ao administrador para configurar nas Configurações do Painel.');
+            const whatsapp = getWhatsappNumber();
+            if (!whatsapp || whatsapp === '') {
+                alert('Número do WhatsApp não configurado! Entre em contato com a loja.');
                 return;
             }
 
@@ -511,7 +543,8 @@
             const now = new Date();
             const dataHora = now.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             
-            let mensagem = `*Novo Pedido - ${STORE_NAME}*\n`;
+            const storeName = getStoreName();
+            let mensagem = `*Novo Pedido - ${storeName}*\n`;
             mensagem += `📅 Data: ${dataHora}\n`;
             mensagem += `🪑 Mesa: ${mesaAtual.numero} (Código: ${mesaAtual.codigo})\n\n`;
             mensagem += `*Itens:*\n`;
@@ -538,10 +571,11 @@
             pedidos.push(pedido);
             setPedidos(pedidos);
 
-            // Abrir WhatsApp com o número configurado
-            const url = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(mensagem)}`;
+            // Enviar WhatsApp
+            const url = `https://api.whatsapp.com/send?phone=${whatsapp}&text=${encodeURIComponent(mensagem)}`;
             window.open(url, '_blank');
 
+            // Limpar carrinho
             carrinho = [];
             atualizarCarrinhoUI();
             fecharCarrinho();
@@ -588,6 +622,7 @@
                 html += `</div></div>`;
             });
 
+            // Produtos sem categoria
             const produtosSemCategoria = produtos.filter(p => !categorias.some(c => c.id === p.categoria));
             if (produtosSemCategoria.length > 0) {
                 html += `<div class="mb-6">
@@ -650,13 +685,11 @@
                 el.classList.add('text-gray-500', 'border-transparent');
             });
             document.querySelector(`.tab-admin[data-tab="${tab}"]`).classList.add('border-[#d4af37]', 'text-[#d4af37]');
-            
-            // Renderizar conforme a aba
             if (tab === 'categorias') renderizarCategoriasAdmin();
             else if (tab === 'produtos') { preencherSelectCategorias(); renderizarProdutosAdmin(); }
             else if (tab === 'mesas') renderizarMesasAdmin();
             else if (tab === 'pedidos') renderizarPedidosAdmin();
-            else if (tab === 'config') carregarConfiguracao();
+            else if (tab === 'configuracoes') carregarConfiguracoes();
         }
 
         // ============================================================
@@ -831,7 +864,7 @@
         }
 
         // ============================================================
-        // ADMIN - MESAS
+        // ADMIN - MESAS (QR Code)
         // ============================================================
         function renderizarMesasAdmin() {
             const container = document.getElementById('lista-mesas');
@@ -854,7 +887,7 @@
                     <div class="mt-2">
                         <div id="qrcode-${m.id}" class="flex justify-center"></div>
                         <button onclick="gerarQRCode('${m.id}')" class="text-sm text-blue-500 hover:underline mt-1">Gerar QR Code</button>
-                        <a href="${BASE_URL}?mesa=${m.id}" target="_blank" class="text-sm text-green-500 hover:underline ml-2">Abrir link</a>
+                        <a href="${window.location.origin}${window.location.pathname}?mesa=${m.id}" target="_blank" class="text-sm text-green-500 hover:underline ml-2">Abrir link</a>
                     </div>
                 </div>
             `).join('');
@@ -863,7 +896,7 @@
                 const containerQr = document.getElementById(`qrcode-${m.id}`);
                 if (containerQr && containerQr.children.length === 0) {
                     new QRCode(containerQr, {
-                        text: `${BASE_URL}?mesa=${m.id}`,
+                        text: `${window.location.origin}${window.location.pathname}?mesa=${m.id}`,
                         width: 100,
                         height: 100,
                         colorDark: '#630f24',
@@ -882,7 +915,7 @@
                 const mesa = mesas.find(m => m.id === id);
                 if (mesa) {
                     new QRCode(container, {
-                        text: `${BASE_URL}?mesa=${mesa.id}`,
+                        text: `${window.location.origin}${window.location.pathname}?mesa=${mesa.id}`,
                         width: 120,
                         height: 120,
                         colorDark: '#630f24',
@@ -988,30 +1021,38 @@
         }
 
         // ============================================================
-        // ADMIN - CONFIGURAÇÕES (NOVA)
+        // ADMIN - CONFIGURAÇÕES
         // ============================================================
-        function carregarConfiguracao() {
-            const num = getWhatsAppNumber();
-            document.getElementById('whatsapp-number').value = num;
-            const statusDiv = document.getElementById('config-status');
-            if (num) {
-                statusDiv.innerHTML = `<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i> Número configurado: <strong>${num}</strong></span>`;
-            } else {
-                statusDiv.innerHTML = `<span class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-1"></i> Número não configurado. Os pedidos não poderão ser enviados.</span>`;
-            }
+        function carregarConfiguracoes() {
+            const config = getConfig();
+            document.getElementById('whatsapp-number').value = config.whatsapp || '';
+            document.getElementById('store-name-config').value = config.storeName || '';
+            document.getElementById('config-status').classList.add('hidden');
         }
 
-        function salvarConfig(e) {
+        function salvarConfiguracoes(e) {
             e.preventDefault();
-            const num = document.getElementById('whatsapp-number').value.trim();
-            // Validação simples: apenas números
-            if (!/^\d+$/.test(num)) {
-                alert('Por favor, informe apenas números (ex: 5511999999999).');
+            const whatsapp = document.getElementById('whatsapp-number').value.trim();
+            const storeName = document.getElementById('store-name-config').value.trim();
+
+            if (!whatsapp) {
+                alert('Por favor, informe o número do WhatsApp.');
                 return;
             }
-            setWhatsAppNumber(num);
-            carregarConfiguracao(); // atualiza status
-            alert('Número do WhatsApp salvo com sucesso!');
+
+            setWhatsappNumber(whatsapp);
+            if (storeName) setStoreName(storeName);
+
+            // Atualizar cabeçalho e título da página
+            const name = getStoreName();
+            document.querySelectorAll('#header-store-name, #splash-store-name').forEach(el => el.textContent = name);
+            document.title = `Cardápio Digital - ${name}`;
+
+            document.getElementById('config-status').classList.remove('hidden');
+            document.getElementById('config-status').textContent = '✅ Configurações salvas com sucesso!';
+            setTimeout(() => {
+                document.getElementById('config-status').classList.add('hidden');
+            }, 4000);
         }
 
         // ============================================================
@@ -1031,7 +1072,7 @@
             renderizarProdutosAdmin();
             renderizarMesasAdmin();
             renderizarPedidosAdmin();
-            carregarConfiguracao();
+            carregarConfiguracoes();
             trocarTabAdmin('categorias');
         }
 
