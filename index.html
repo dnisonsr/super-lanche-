@@ -42,8 +42,8 @@
 <body class="bg-gray-100 font-sans pb-44" id="body-root">
 
     <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col justify-center items-center bg-[#630f24] p-6 transition-all duration-500">
-        <div class="max-w-xs md:max-w-sm animate-pulse mb-6">
-            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500" alt="Le Jollye Lanches Logo" class="w-32 h-32 object-cover rounded-2xl shadow-2xl">
+        <div class="max-w-xs md:max-w-sm mb-6">
+            <img src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" alt="Le Jollye Lanches Logo" class="w-40 h-40 object-cover rounded-2xl shadow-2xl">
         </div>
         <div class="flex flex-col items-center gap-3">
             <div class="w-10 h-10 border-4 border-[#d4af37]/30 border-t-[#d4af37] rounded-full animate-spin"></div>
@@ -124,8 +124,8 @@
                         <button onclick="abaAdicionarMercadoria()" class="bg-emerald-600 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Cadastrar Produto</button>
                     </div>
                     <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
-                        <h3 class="font-bold text-gray-800 text-xs mb-1">🪑 Gerenciar Mesas</h3>
-                        <button onclick="abaGerenciarMesas()" class="bg-blue-600 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Criar / Deletar Mesas</button>
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">🪑 Gerenciar Mesas e QR Codes</h3>
+                        <button onclick="abaGerenciarMesas()" class="bg-blue-600 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Criar Mesas / QR Code</button>
                     </div>
                     <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
                         <h3 class="font-bold text-gray-800 text-xs mb-1">🛡️ Filtro Anti-Fantasmas</h3>
@@ -146,7 +146,7 @@
     <script>
         const SENHA_PROMPT = "admin123";
 
-        // BANCO DE PRODUTOS INICIAL (CASO NÃO EXISTA NADA SALVO)
+        // BANCO DE PRODUTOS INICIAL
         let listaProdutos = [
             { id: 1, nome: "X-Burguer Tradicional", descricao: "Pão brioche, blend artesanal 150g, muito queijo prato e maionese.", preco: 22.00, imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500", ativo: true },
             { id: 2, nome: "X-Bacon Especial", descricao: "Pão, blend 150g, queijo cheddar, tiras de bacon crocantes e barbecue.", preco: 26.50, imagem: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=500", ativo: true }
@@ -156,7 +156,6 @@
         let carrinho = {};
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Sincroniza com o cache do navegador (LocalStorage)
             if(localStorage.getItem('bancoProdutos')) {
                 listaProdutos = JSON.parse(localStorage.getItem('bancoProdutos'));
             } else {
@@ -171,14 +170,13 @@
             atualizarSelectMesas();
             renderizarProdutos(listaProdutos);
 
-            // Oculta tela de carregamento
+            // Oculta tela de carregamento suavemente
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) { splash.classList.add('fade-out'); setTimeout(() => splash.remove(), 600); }
             }, 800);
         });
 
-        // RENDERIZA OS PRODUTOS NO CARDÁPIO
         function renderizarProdutos(produtos) {
             const container = document.getElementById('produtos');
             container.innerHTML = '';
@@ -214,7 +212,7 @@
 
         function alterarQuantidade(id, mudanca) {
             const produto = listaProdutos.find(p => p.id === id);
-            if (!carrinho[id]) carrinho[id] = { ...produto, quantidade: 0 };
+            if (!carrinho[id]) carrinho[id] = { ...produto, grandmother: 0, quantidade: 0 };
             carrinho[id].quantidade += mudanca;
 
             if (carrinho[id].quantidade <= 0) {
@@ -250,25 +248,24 @@
             renderizarProdutos(filtrados);
         }
 
+        /* INVISÍVEL NO CARDÁPIO GERAL */
         function limparCarrinho() {
             carrinho = {};
             atualizarResumoCarrinho();
             listaProdutos.forEach(p => { if(document.getElementById(`qtd-${p.id}`)) document.getElementById(`qtd-${p.id}`).innerText = '0'; });
         }
 
-        // DISPARAR PEDIDO NO WHATSAPP COM SEGURANÇA
         function enviarPedido() {
             const mesaEscolhida = document.getElementById('selecaoMesaCliente').value;
             const chavesCarrinho = Object.keys(carrinho);
             
             if (chavesCarrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
 
-            // Filtro de Segurança Anti-Fantasma por Geolocalização
             if (localStorage.getItem('travaGeoLocalizacao') === 'sim') {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         () => prosseguirEnvio(mesaEscolhida, chavesCarrinho),
-                        () => { alert("⚠️ PEDIDO BLOQUEADO: Para realizar pedidos na lanchonete, você precisa ativar e permitir a localização no seu navegador."); }
+                        () => { alert("⚠️ PEDIDO BLOQUEADO: Ative a localização no seu navegador."); }
                     );
                 } else {
                     prosseguirEnvio(mesaEscolhida, chavesCarrinho);
@@ -302,7 +299,6 @@
             mensagem += `----------------------------------\n`;
             mensagem += `*Total: R$ ${totalGeral.toFixed(2).replace('.', ',')}*\n\n`;
 
-            // Grava no histórico local para gerenciamento do balcão
             let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
             historico.unshift({ id: Date.now(), codigo: codigoPedido, data: agora.toLocaleString('pt-BR'), cliente: mesa, itens: itensSalvar, total: totalGeral });
             localStorage.setItem('historicoPedidos', JSON.stringify(historico));
@@ -312,7 +308,6 @@
             limparCarrinho();
         }
 
-        // CONTROLADORES DO MODAL DO PAINEL
         function abrirPainelComSenha() {
             if (prompt("Digite a senha do painel:") === SENHA_PROMPT) {
                 document.getElementById('modal-painel').classList.remove('hidden');
@@ -321,220 +316,9 @@
         }
         function fecharPainel() { document.getElementById('modal-painel').classList.add('hidden'); }
 
-        // ==========================================
-        // FUNÇÕES DAS 6 ABAS DO PAINEL DE CONTROLE
-        // ==========================================
-
-        // 1. HISTÓRICO
         function visualizarHistorico() {
             const secao = document.getElementById('secao-dinamica-painel');
             document.getElementById('titulo-secao-dinamica').innerText = "📋 Últimos Pedidos no Balcão";
             secao.classList.remove('hidden');
 
-            const container = document.getElementById('container-dinamico-itens');
-            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
-            container.innerHTML = '';
-
-            if (historico.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-2">Nenhum pedido efetuado ainda.</p>`;
-                return;
-            }
-
-            historico.forEach(p => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-3 border rounded-xl flex justify-between items-center text-xs shadow-sm";
-                div.innerHTML = `
-                    <div>
-                        <p class="font-bold text-gray-800">${p.codigo} - ${p.cliente}</p>
-                        <p class="text-gray-400 text-[10px]">${p.data} - Total: R$ ${p.total.toFixed(2).replace('.', ',')}</p>
-                    </div>
-                    <button onclick="imprimirPedidoDireto('${p.codigo}')" class="bg-blue-600 text-white px-3 py-1 rounded font-bold hover:bg-blue-700">🖨️ Imprimir</button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function imprimirPedidoDireto(codigo) {
-            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
-            const p = historico.find(item => item.codigo === codigo);
-            if(!p) return;
-
-            const areaPrint = document.getElementById('area-impressao');
-            let txt = `
-                <div class="quebra-pagina">
-                    <p style="text-align: center; font-weight: bold; font-size: 14px;">LE JOLLYE LANCHES</p>
-                    <p>--------------------------------</p>
-                    <p><b>CÓDIGO:</b> ${p.codigo}</p>
-                    <p><b>LOCAL:</b> ${p.cliente}</p>
-                    <p><b>DATA:</b> ${p.data}</p>
-                    <p>--------------------------------</p>
-            `;
-            p.itens.forEach(i => { txt += `<p>${i.quantidade}x ${i.nome}<br>  ↳ R$ ${i.subtotal.toFixed(2).replace('.', ',')}</p>`; });
-            txt += `
-                    <p>--------------------------------</p>
-                    <p><b>TOTAL DO PEDIDO: R$ ${p.total.toFixed(2).replace('.', ',')}</b></p>
-                </div>
-            `;
-            areaPrint.innerHTML = txt;
-            window.print();
-        }
-
-        // 2. WHATSAPP
-        function configurarWhatsapp() {
-            const numeroAtual = localStorage.getItem('numeroWhatsAppConfig') || "5521999999999";
-            const novoNumero = prompt("Digite o WhatsApp da loja (Apenas números com DDD e Código do País):\nExemplo: 5521999999999", numeroAtual);
-            if (novoNumero !== null && novoNumero.trim() !== "") {
-                localStorage.setItem('numeroWhatsAppConfig', novoNumero.replace(/\s+/g, ''));
-                alert("Número do WhatsApp atualizado com sucesso!");
-            }
-        }
-
-        // 3. DISPONIBILIDADE (PAUSAR / ATIVAR)
-        function abaDisponibilidadeMercadorias() {
-            const secao = document.getElementById('secao-dinamica-painel');
-            document.getElementById('titulo-secao-dinamica').innerText = "📦 Status de Disponibilidade";
-            secao.classList.remove('hidden');
-
-            const container = document.getElementById('container-dinamico-itens');
-            container.innerHTML = '';
-
-            listaProdutos.forEach(prod => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-2.5 border rounded-xl flex justify-between items-center text-xs shadow-sm";
-                const statusTxt = prod.ativo !== false ? "🟢 Ativo no Cardápio" : "🔴 Pausado (Esgotado)";
-                const btnTxt = prod.ativo !== false ? "Pausar" : "Ativar";
-                const btnCor = prod.ativo !== false ? "bg-red-500" : "bg-green-600";
-
-                div.innerHTML = `
-                    <div>
-                        <p class="font-bold text-gray-800">${prod.nome}</p>
-                        <p class="text-[10px] text-gray-500 font-semibold">${statusTxt}</p>
-                    </div>
-                    <button onclick="alternarStatusProduto(${prod.id})" class="${btnCor} text-white px-3 py-1 rounded font-bold">${btnTxt}</button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function alternarStatusProduto(id) {
-            const prod = listaProdutos.find(p => p.id === id);
-            if(prod) {
-                prod.ativo = (prod.ativo === undefined) ? false : !prod.ativo;
-                localStorage.setItem('bancoProdutos', JSON.stringify(listaProdutos));
-                abaDisponibilidadeMercadorias();
-                renderizarProdutos(listaProdutos);
-            }
-        }
-
-        // 4. ADICIONAR PRODUTOS (MERCADORIAS)
-        function abaAdicionarMercadoria() {
-            const secao = document.getElementById('secao-dinamica-painel');
-            document.getElementById('titulo-secao-dinamica').innerText = "➕ Cadastrar Novo Produto";
-            secao.classList.remove('hidden');
-
-            document.getElementById('container-dinamico-itens').innerHTML = `
-                <div class="bg-gray-50 p-4 rounded-xl border text-xs space-y-3">
-                    <div>
-                        <label class="block font-bold mb-1 text-gray-700">Nome do Produto:</label>
-                        <input type="text" id="addNome" placeholder="Ex: X-Salada Especial" class="w-full p-2 border rounded">
-                    </div>
-                    <div>
-                        <label class="block font-bold mb-1 text-gray-700">Descrição/Ingredientes:</label>
-                        <input type="text" id="addDesc" placeholder="Ex: Pão, carne 150g, alface, tomate e queijo." class="w-full p-2 border rounded">
-                    </div>
-                    <div>
-                        <label class="block font-bold mb-1 text-gray-700">Preço de Venda (R$):</label>
-                        <input type="number" step="0.01" id="addPreco" placeholder="Ex: 24.90" class="w-full p-2 border rounded">
-                    </div>
-                    <div>
-                        <label class="block font-bold mb-1 text-gray-700">Endereço (URL) da Imagem:</label>
-                        <input type="text" id="addImg" value="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500" class="w-full p-2 border rounded">
-                    </div>
-                    <button onclick="salvarNovoProduto()" class="w-full bg-emerald-600 text-white p-2.5 rounded font-bold hover:bg-emerald-700 transition shadow">Incluir no Cardápio</button>
-                </div>
-            `;
-        }
-
-        function salvarNovoProduto() {
-            const nome = document.getElementById('addNome').value.trim();
-            const desc = document.getElementById('addDesc').value.trim();
-            const preco = parseFloat(document.getElementById('addPreco').value);
-            const img = document.getElementById('addImg').value.trim();
-
-            if (!nome || !desc || isNaN(preco)) { alert("Por favor, preencha todos os campos obrigatórios."); return; }
-
-            listaProdutos.push({ id: Date.now(), nome: nome, descricao: desc, preco: preco, imagem: img, ativo: true });
-            localStorage.setItem('bancoProdutos', JSON.stringify(listaProdutos));
-            
-            alert("Produto cadastrado com sucesso!");
-            renderizarProdutos(listaProdutos);
-            abaAdicionarMercadoria();
-        }
-
-        // 5. GERENCIAR MESAS
-        function abaGerenciarMesas() {
-            const secao = document.getElementById('secao-dinamica-painel');
-            document.getElementById('titulo-secao-dinamica').innerText = "🪑 Mesas Disponíveis no Sistema";
-            secao.classList.remove('hidden');
-
-            let htmlLista = `<div class="space-y-1.5 max-h-40 overflow-y-auto mb-3">`;
-            listaMesas.forEach((mesa, idx) => {
-                htmlLista += `
-                    <div class="flex justify-between items-center bg-white p-2 border rounded-lg text-xs shadow-sm">
-                        <span class="font-bold text-gray-700">📍 ${mesa}</span>
-                        <button onclick="removerMesa(${idx})" class="text-red-500 font-bold hover:underline">Excluir</button>
-                    </div>`;
-            });
-            htmlLista += `</div>`;
-
-            document.getElementById('container-dinamico-itens').innerHTML = htmlLista + `
-                <div class="flex gap-2">
-                    <input type="text" id="novaMesaInput" placeholder="Ex: Mesa 06" class="p-2 border rounded-lg text-xs flex-1">
-                    <button onclick="adicionarMesa()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700">Criar Mesa</button>
-                </div>
-            `;
-        }
-
-        function adicionarMesa() {
-            const val = document.getElementById('novaMesaInput').value.trim();
-            if(!val) return;
-            listaMesas.push(val);
-            localStorage.setItem('bancoMesas', JSON.stringify(listaMesas));
-            atualizarSelectMesas();
-            abaGerenciarMesas();
-        }
-
-        function removerMesa(idx) {
-            listaMesas.splice(idx, 1);
-            localStorage.setItem('bancoMesas', JSON.stringify(listaMesas));
-            atualizarSelectMesas();
-            abaGerenciarMesas();
-        }
-
-        // 6. SEGURANÇA (TRAVA LOCALIZAÇÃO)
-        function abaConfigurarSeguranca() {
-            const secao = document.getElementById('secao-dinamica-painel');
-            document.getElementById('titulo-secao-dinamica').innerText = "🛡️ Bloqueio de Pedidos Falsos";
-            secao.classList.remove('hidden');
-
-            const geoAtiva = localStorage.getItem('travaGeoLocalizacao') === 'sim';
-
-            document.getElementById('container-dinamico-itens').innerHTML = `
-                <div class="bg-white p-4 border rounded-xl text-xs space-y-3 shadow-sm">
-                    <p class="text-gray-600 leading-relaxed">Ativando essa opção, o navegador do cliente exigirá o uso do GPS do celular dele para enviar o pedido. Isso evita pedidos fantasmas vindos de fora do bairro ou da cidade.</p>
-                    <label class="flex items-center gap-2 font-bold cursor-pointer text-red-700 bg-red-50 p-2 rounded-lg">
-                        <input type="checkbox" id="checkGeo" ${geoAtiva ? 'checked' : ''} onchange="alterarTravaSeguranca()">
-                        Ativar Trava por Geolocalização Obrigatória
-                    </label>
-                </div>
-            `;
-        }
-
-        function alterarTravaSeguranca() {
-            const check = document.getElementById('checkGeo').checked;
-            localStorage.setItem('travaGeoLocalizacao', check ? 'sim' : 'nao');
-            alert("Configuração de segurança atualizada!");
-        }
-    </script>
-</body>
-</html>
+            const container = document.getElementById('
