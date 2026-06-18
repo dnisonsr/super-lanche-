@@ -59,7 +59,7 @@
             style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000');">
         
         <div class="w-full flex justify-end">
-            <button onclick="abrirPainel()" class="bg-black/50 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/70 transition">Painel Admin / Balcão</button>
+            <button onclick="abrirPainelComSenha()" class="bg-black/50 text-white border border-white/30 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-sm hover:bg-black/70 transition">Painel Admin / Balcão</button>
         </div>
 
         <div class="text-white drop-shadow-lg mb-2">
@@ -118,13 +118,18 @@
                     <div class="border rounded-xl p-4 hover:shadow-md transition bg-gray-50">
                         <h3 class="font-bold text-gray-800 flex items-center gap-1 mb-1">📋 Histórico de Impressão</h3>
                         <p class="text-xs text-gray-500 mb-3">Reenviar últimos pedidos para a impressora térmica.</p>
-                        <button class="bg-[#630f24] text-white text-xs px-3 py-1.5 rounded font-semibold hover:opacity-90">Visualizar</button>
+                        <button onclick="visualizarHistorico()" class="bg-[#630f24] text-white text-xs px-3 py-1.5 rounded font-semibold hover:opacity-90">Visualizar</button>
                     </div>
                     <div class="border rounded-xl p-4 hover:shadow-md transition bg-gray-50">
                         <h3 class="font-bold text-gray-800 flex items-center gap-1 mb-1">⚙️ Configurações</h3>
                         <p class="text-xs text-gray-500 mb-3">Alterar número do WhatsApp ou taxas de entrega.</p>
-                        <button class="bg-gray-800 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-gray-900">Configurar</button>
+                        <button onclick="configurarWhatsapp()" class="bg-gray-800 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-gray-900">Configurar</button>
                     </div>
+                </div>
+
+                <div id="lista-pedidos-painel" class="border-t pt-4 hidden">
+                    <h4 class="font-bold text-gray-700 text-sm mb-2 uppercase tracking-wider">Últimos Pedidos Recebidos:</h4>
+                    <div id="container-historico-itens" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
                 </div>
             </div>
         </div>
@@ -133,7 +138,8 @@
     <div id="area-impressao" class="hidden"></div>
 
     <script>
-        // Dados dos Lanches (Exemplos)
+        const SENHA_PROMPT = "admin123"; // Defina sua senha aqui
+
         const listaProdutos = [
             { id: 1, nome: "X-Burguer Tradicional", descricao: "Pão, blend artesanal 150g, muito queijo prato e maionese da casa.", preco: 22.00, imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500" },
             { id: 2, nome: "X-Bacon Especial", descricao: "Pão, blend 150g, queijo cheddar, tiras de bacon crocantes e barbecue.", preco: 26.50, imagem: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=500" },
@@ -144,7 +150,6 @@
 
         let carrinho = {};
 
-        // Remove a Splash Screen após carregar a página de forma segura
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -156,7 +161,6 @@
             renderizarProdutos(listaProdutos);
         });
 
-        // Renderiza os produtos na tela
         function renderizarProdutos(produtos) {
             const container = document.getElementById('produtos');
             container.innerHTML = '';
@@ -191,12 +195,11 @@
             });
         }
 
-        // Altera a quantidade no carrinho de forma reativa
         function alterarQuantidade(id, mudanca) {
             const produto = listaProdutos.find(p => p.id === id);
             
             if (!carrinho[id]) {
-                carrinho[id] = { ...produto, grandmother: null, quantidade: 0 };
+                carrinho[id] = { ...produto, quantidade: 0 };
             }
 
             carrinho[id].quantidade += mudanca;
@@ -213,7 +216,6 @@
             atualizarResumoCarrinho();
         }
 
-        // Atualiza os valores na barra inferior
         function atualizarResumoCarrinho() {
             let totalItens = 0;
             let valorTotal = 0;
@@ -227,7 +229,6 @@
             document.getElementById('total').innerText = valorTotal.toFixed(2).replace('.', ',');
         }
 
-        // Filtra os produtos com base na busca
         function filtrarProdutos() {
             const termo = document.getElementById('buscaInput').value.toLowerCase();
             const filtrados = listaProdutos.filter(p => 
@@ -237,19 +238,31 @@
             renderizarProdutos(filtrados);
         }
 
-        // Limpa o carrinho de compras completamente
         function limparCarrinho() {
             carrinho = {};
             atualizarResumoCarrinho();
             
-            // Zera todos os contadores visualmente na tela
             listaProdutos.forEach(p => {
                 const indicador = document.getElementById(`qtd-${p.id}`);
                 if (indicador) indicador.innerText = '0';
             });
         }
 
-        // Envia o pedido estruturado para o WhatsApp
+        // Salva localmente o histórico para conferência do balcão
+        function salvarNoHistoricoLocal(nomeCliente, itensDoPedido, totalGeral) {
+            let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+            const novoRegistro = {
+                id: Date.now(),
+                data: new Date().toLocaleString('pt-BR'),
+                cliente: nomeCliente,
+                itens: itensDoPedido,
+                total: totalGeral
+            };
+            historico.unshift(novoRegistro); // Adiciona no início da lista
+            if (historico.length > 30) historico.pop(); // Limita a 30 registros
+            localStorage.setItem('historicoPedidos', JSON.stringify(historico));
+        }
+
         function enviarPedido() {
             const nomeCliente = document.getElementById('nomeClienteInput').value.trim();
             
@@ -269,33 +282,130 @@
             mensagem += `----------------------------------\n`;
 
             let totalGeral = 0;
+            let itensSalvar = [];
+
             chavesCarrinho.forEach(id => {
                 const item = carrinho[id];
                 const subtotal = item.quantidade * item.preco;
                 totalGeral += subtotal;
                 mensagem += `${item.quantidade}x _${item.nome}_\n`;
-                mensagem += `   ↳ Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+                mensagem += `    ↳ Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+                
+                itensSalvar.push({
+                    nome: item.nome,
+                    quantidade: item.quantidade,
+                    subtotal: subtotal
+                });
             });
 
             mensagem += `----------------------------------\n`;
             mensagem += `*Total do Pedido: R$ ${totalGeral.toFixed(2).replace('.', ',')}*`;
 
-            // Substitua pelo número real do WhatsApp da sua lanchonete (Ex: 5521999999999)
-            const numeroTelefone = "5500000000000"; 
+            // Salva no histórico do navegador antes de ir para o WhatsApp
+            salvarNoHistoricoLocal(nomeCliente, itensSalvar, totalGeral);
+
+            // Carrega o número configurado ou assume o padrão do código se não houver um salvo
+            const numeroTelefone = localStorage.getItem('numeroWhatsAppConfig') || "5521999999999"; 
             const urlFinal = `https://api.whatsapp.com/send?phone=${numeroTelefone}&text=${encodeURIComponent(mensagem)}`;
             
             window.open(urlFinal, '_blank');
         }
 
         // ----------------------------------------------------
-        // LOGICA DE ABRIR E FECHAR O PAINEL DE CONTROLE
+        // LÓGICA DO PAINEL DE CONTROLE (ADMIN / BALCÃO)
         // ----------------------------------------------------
-        function abrirPainel() {
-            document.getElementById('modal-painel').classList.remove('hidden');
+        function abrirPainelComSenha() {
+            const senhaDigitada = prompt("Digite a senha de acesso ao Painel:");
+            if (senhaDigitada === SENHA_PROMPT) {
+                document.getElementById('modal-painel').classList.remove('hidden');
+                document.getElementById('lista-pedidos-painel').classList.add('hidden'); // reseta aba ao abrir
+            } else if (senhaDigitada !== null) {
+                alert("Senha incorreta! Acesso negado.");
+            }
         }
 
         function fecharPainel() {
             document.getElementById('modal-painel').classList.add('hidden');
+        }
+
+        function configurarWhatsapp() {
+            const numeroAtual = localStorage.getItem('numeroWhatsAppConfig') || "5521999999999";
+            const novoNumero = prompt("Digite o WhatsApp da lanchonete (Apenas números com código do país e DDD.\nExemplo: 5521999999999):", numeroAtual);
+            
+            if (novoNumero !== null && novoNumero.trim() !== "") {
+                localStorage.setItem('numeroWhatsAppConfig', novoNumero.replace(/\s+/g, ''));
+                alert("Número do WhatsApp atualizado com sucesso!");
+            }
+        }
+
+        function visualizarHistorico() {
+            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+            const container = document.getElementById('container-historico-itens');
+            const boxAbas = document.getElementById('lista-pedidos-painel');
+            
+            container.innerHTML = '';
+            boxAbas.classList.remove('hidden');
+
+            if (historico.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Nenhum pedido registrado nesta máquina ainda.</p>`;
+                return;
+            }
+
+            historico.forEach(pedido => {
+                const divItem = document.createElement('div');
+                divItem.className = "bg-white p-3 border rounded-xl flex justify-between items-center shadow-sm text-xs";
+                
+                let detalhesItens = pedido.itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ');
+
+                divItem.innerHTML = `
+                    <div class="flex-1 pr-2">
+                        <p class="font-bold text-gray-800 mb-0.5">Mesa/Cli: ${pedido.cliente}</p>
+                        <p class="text-gray-500 text-[11px] truncate">${detalhesItens}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">${pedido.data} - Total: R$ ${pedido.total.toFixed(2).replace('.', ',')}</p>
+                    </div>
+                    <button onclick="imprimirPedidoDireto(${pedido.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded transition text-[11px]">🖨️ Imprimir</button>
+                `;
+                container.appendChild(divItem);
+            });
+        }
+
+        function imprimirPedidoDireto(idPedido) {
+            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+            const pedido = historico.find(p => p.id === idPedido);
+
+            if (!pedido) {
+                alert("Pedido não encontrado para impressão.");
+                return;
+            }
+
+            const areaPrint = document.getElementById('area-impressao');
+            
+            let conteudoImpressao = `
+                <div class="quebra-pagina">
+                    <p style="text-align: center; font-weight: bold; font-size: 14px;">LE JOLLYE LANCHES</p>
+                    <p style="text-align: center;">Reimpressão do Balcão</p>
+                    <p>--------------------------------</p>
+                    <p><b>Data:</b> ${pedido.data}</p>
+                    <p><b>Mesa/Cli:</b> ${pedido.cliente}</p>
+                    <p>--------------------------------</p>
+                    <p><b>ITENS DO PEDIDO:</b></p>
+            `;
+
+            pedido.itens.forEach(item => {
+                conteudoImpressao += `<p>${item.quantidade}x ${item.nome}<br>   ↳ R$ ${item.subtotal.toFixed(2).replace('.', ',')}</p>`;
+            });
+
+            conteudoImpressao += `
+                    <p>--------------------------------</p>
+                    <p style="font-size: 13px;"><b>TOTAL SE MANIFESTADO: R$ ${pedido.total.toFixed(2).replace('.', ',')}</b></p>
+                    <p style="text-align: center; margin-top: 15px;">* Obrigado! *</p>
+                </div>
+            `;
+
+            areaPrint.innerHTML = conteudoImpressao;
+            
+            // Dispara a impressão padrão do navegador mapeada no CSS @media print
+            window.print();
         }
     </script>
 </body>
