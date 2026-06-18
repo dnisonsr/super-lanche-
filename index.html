@@ -47,7 +47,7 @@
         </div>
         <div class="flex flex-col items-center gap-3">
             <div class="w-10 h-10 border-4 border-[#d4af37]/30 border-t-[#d4af37] rounded-full animate-spin"></div>
-            <p class="text-[#d4af37] text-sm font-semibold tracking-widest uppercase">Carregando...</p>
+            <p class="text-[#d4af37] text-sm font-semibold tracking-widest uppercase">Carregando Cardápio...</p>
         </div>
     </div>
 
@@ -60,12 +60,12 @@
 
         <div class="text-white drop-shadow-lg mb-2">
             <h1 class="text-3xl md:text-4xl font-black tracking-wide uppercase text-[#d4af37]">Le Jollye Lanches</h1>
-            <p id="subtituloLoja" class="bg-[#630f24] text-[#d4af37] border border-[#d4af37]/40 inline-block px-4 py-1 rounded-full text-xs font-bold mt-2 shadow-md">Faça seu pedido online</p>
+            <p class="bg-[#630f24] text-[#d4af37] border border-[#d4af37]/40 inline-block px-4 py-1 rounded-full text-xs font-bold mt-2 shadow-md">Faça seu pedido online</p>
         </div>
 
         <div class="w-full max-w-xl mb-4 px-2">
             <div class="relative">
-                <input type="text" id="buscaInput" oninput="filtrarProdutos()" placeholder="🔍 Buscar itens..." class="w-full pl-10 pr-4 py-2.5 rounded-lg shadow-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/95">
+                <input type="text" id="buscaInput" oninput="filtrarProdutos()" placeholder="🔍 Buscar lanches ou bebidas..." class="w-full pl-10 pr-4 py-2.5 rounded-lg shadow-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/95">
             </div>
         </div>
     </header>
@@ -77,19 +77,19 @@
     <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 z-40">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-2">
             <div>
-                <div class="text-sm text-gray-600">Itens: <span id="itens" class="font-bold text-gray-900">0</span></div>
+                <div class="text-sm text-gray-600">Itens no carrinho: <span id="itens" class="font-bold text-gray-900">0</span></div>
                 <div class="text-lg font-bold text-gray-800 mb-1">Total: R$ <span id="total">0,00</span></div>
-                <button onclick="limparCarrinho()" class="text-xs text-red-500 underline hover:text-red-700 font-semibold">Refazer / Limpar Tudo</button>
+                <button onclick="limparCarrinho()" class="text-xs text-red-500 underline hover:text-red-700 font-semibold">Limpar Carrinho</button>
             </div>
             
             <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end flex-1 max-w-xl justify-end">
                 <div class="flex flex-col flex-1">
-                    <label for="selecaoMesaCliente" class="block text-xs font-bold text-gray-600 mb-1">Escolha sua Mesa ou Identificação:</label>
+                    <label for="selecaoMesaCliente" class="block text-xs font-bold text-gray-600 mb-1">Selecione sua Mesa ou Identificação:</label>
                     <select id="selecaoMesaCliente" class="border border-gray-300 p-2.5 rounded-lg text-sm bg-gray-50 font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500">
                         </select>
                 </div>
                 <button onclick="enviarPedido()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold shadow transition h-[42px] flex items-center justify-center gap-2">
-                    💬 Enviar via WhatsApp
+                    💬 Enviar Pedido via WhatsApp
                 </button>
             </div>
         </div>
@@ -100,33 +100,41 @@
             <div class="bg-[#630f24] text-[#d4af37] p-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">🖥️</span>
-                    <h2 class="font-bold text-lg uppercase">Painel Admin / Balcão</h2>
+                    <h2 class="font-bold text-lg uppercase tracking-wider">Painel Gestor Completo</h2>
                 </div>
-                <button onclick="fecharPainel()" class="bg-black/30 hover:bg-black/50 text-white font-bold px-3 py-1 rounded-lg text-sm transition">✕</button>
+                <button onclick="fecharPainel()" class="bg-black/30 hover:bg-black/50 text-white font-bold px-3 py-1 rounded-lg text-sm transition">✕ Fechar</button>
             </div>
             
             <div class="p-6 overflow-y-auto flex-1 space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="border rounded-xl p-3 bg-gray-50">
-                        <h3 class="font-bold text-gray-800 text-sm mb-1">📋 Histórico / Impressão</h3>
-                        <button onclick="visualizarHistorico()" class="bg-[#630f24] text-white text-xs px-3 py-1.5 rounded font-semibold w-full">Visualizar Pedidos</button>
+                    <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">📋 Histórico de Vendas</h3>
+                        <button onclick="visualizarHistorico()" class="bg-[#630f24] text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Ver e Reimprimir</button>
                     </div>
-                    <div class="border rounded-xl p-3 bg-gray-50">
-                        <h3 class="font-bold text-gray-800 text-sm mb-1">🪑 Configurar Mesas</h3>
-                        <button onclick="abaGerenciarMesas()" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded font-semibold w-full">Criar / Remover Mesas</button>
+                    <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">⚙️ Número do WhatsApp</h3>
+                        <button onclick="configurarWhatsapp()" class="bg-gray-700 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Alterar Telefone</button>
                     </div>
-                    <div class="border rounded-xl p-3 bg-gray-50">
-                        <h3 class="font-bold text-gray-800 text-sm mb-1">➕ Adicionar Mercadorias</h3>
-                        <button onclick="abaAdicionarMercadoria()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold w-full">Cadastrar Lanches</button>
+                    <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">📦 Ativar / Pausar Itens</h3>
+                        <button onclick="abaDisponibilidadeMercadorias()" class="bg-amber-600 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Estoque / Esgotados</button>
                     </div>
-                    <div class="border rounded-xl p-3 bg-gray-50">
-                        <h3 class="font-bold text-gray-800 text-sm mb-1">🛡️ Anti-Fantasmas (Segurança)</h3>
-                        <button onclick="abaConfigurarSeguranca()" class="bg-amber-600 text-white text-xs px-3 py-1.5 rounded font-semibold w-full">Trava de Segurança</button>
+                    <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">➕ Adicionar Lanches</h3>
+                        <button onclick="abaAdicionarMercadoria()" class="bg-emerald-600 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Cadastrar Produto</button>
+                    </div>
+                    <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">🪑 Gerenciar Mesas</h3>
+                        <button onclick="abaGerenciarMesas()" class="bg-blue-600 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Criar / Deletar Mesas</button>
+                    </div>
+                    <div class="border rounded-xl p-3 bg-gray-50 hover:shadow-sm transition">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">🛡️ Filtro Anti-Fantasmas</h3>
+                        <button onclick="abaConfigurarSeguranca()" class="bg-red-700 text-white text-[11px] px-3 py-1.5 rounded font-semibold w-full">Trava por Localização</button>
                     </div>
                 </div>
 
                 <div id="secao-dinamica-painel" class="border-t pt-4 hidden">
-                    <h4 id="titulo-secao-dinamica" class="font-bold text-gray-700 text-sm mb-2 uppercase tracking-wider"></h4>
+                    <h4 id="titulo-secao-dinamica" class="font-bold text-gray-700 text-xs mb-2 uppercase tracking-wider text-center bg-gray-100 py-1 rounded"></h4>
                     <div id="container-dinamico-itens" class="space-y-3"></div>
                 </div>
             </div>
@@ -138,40 +146,46 @@
     <script>
         const SENHA_PROMPT = "admin123";
 
-        // BANCO DE DADOS LOCAL (PRODUTOS BASE)
+        // BANCO DE PRODUTOS INICIAL (CASO NÃO EXISTA NADA SALVO)
         let listaProdutos = [
-            { id: 1, nome: "X-Burguer Tradicional", descricao: "Pão, blend artesanal 150g, queijo prato e maionese.", preco: 22.00, imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500", ativo: true },
-            { id: 2, nome: "X-Bacon Especial", descricao: "Pão, blend 150g, cheddar, tiras de bacon crocantes.", preco: 26.50, imagem: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=500", ativo: true }
+            { id: 1, nome: "X-Burguer Tradicional", descricao: "Pão brioche, blend artesanal 150g, muito queijo prato e maionese.", preco: 22.00, imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500", ativo: true },
+            { id: 2, nome: "X-Bacon Especial", descricao: "Pão, blend 150g, queijo cheddar, tiras de bacon crocantes e barbecue.", preco: 26.50, imagem: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=500", ativo: true }
         ];
 
         let listaMesas = ["Mesa 01", "Mesa 02", "Mesa 03", "Mesa 04", "Mesa 05", "Balcão / Retirada"];
         let carrinho = {};
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Inicialização de Dados via LocalStorage
+            // Sincroniza com o cache do navegador (LocalStorage)
             if(localStorage.getItem('bancoProdutos')) {
                 listaProdutos = JSON.parse(localStorage.getItem('bancoProdutos'));
+            } else {
+                localStorage.setItem('bancoProdutos', JSON.stringify(listaProdutos));
             }
             if(localStorage.getItem('bancoMesas')) {
                 listaMesas = JSON.parse(localStorage.getItem('bancoMesas'));
+            } else {
+                localStorage.setItem('bancoMesas', JSON.stringify(listaMesas));
             }
             
             atualizarSelectMesas();
             renderizarProdutos(listaProdutos);
 
+            // Oculta tela de carregamento
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) { splash.classList.add('fade-out'); setTimeout(() => splash.remove(), 600); }
-            }, 1000);
+            }, 800);
         });
 
+        // RENDERIZA OS PRODUTOS NO CARDÁPIO
         function renderizarProdutos(produtos) {
             const container = document.getElementById('produtos');
             container.innerHTML = '';
             const ativos = produtos.filter(p => p.ativo !== false);
 
             if (ativos.length === 0) {
-                container.innerHTML = `<p class="text-center text-gray-500 my-8 col-span-full">Nenhum produto cadastrado ou ativo.</p>`;
+                container.innerHTML = `<p class="text-center text-gray-500 my-8 col-span-full font-medium">Nenhum lanche disponível no momento...</p>`;
                 return;
             }
 
@@ -187,9 +201,9 @@
                         <div class="flex justify-between items-center mt-2">
                             <span class="text-sm font-extrabold text-green-600">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
                             <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                                <button onclick="alterarQuantidade(${prod.id}, -1)" class="w-7 h-7 bg-white text-gray-800 rounded-md font-bold shadow-sm">-</button>
+                                <button onclick="alterarQuantidade(${prod.id}, -1)" class="w-7 h-7 bg-white text-gray-800 rounded-md font-bold shadow-sm hover:bg-gray-200 transition">-</button>
                                 <span id="qtd-${prod.id}" class="text-sm font-bold w-4 text-center">${qtd}</span>
-                                <button onclick="alterarQuantidade(${prod.id}, 1)" class="w-7 h-7 bg-[#630f24] text-white rounded-md font-bold shadow-sm">+</button>
+                                <button onclick="alterarQuantidade(${prod.id}, 1)" class="w-7 h-7 bg-[#630f24] text-white rounded-md font-bold shadow-sm hover:opacity-90 transition">+</button>
                             </div>
                         </div>
                     </div>
@@ -242,35 +256,34 @@
             listaProdutos.forEach(p => { if(document.getElementById(`qtd-${p.id}`)) document.getElementById(`qtd-${p.id}`).innerText = '0'; });
         }
 
-        // 🛡️ ENVIAR PEDIDO COM REQUISITOS DE SEGURANÇA E CÓDIGO ÚNICO
+        // DISPARAR PEDIDO NO WHATSAPP COM SEGURANÇA
         function enviarPedido() {
             const mesaEscolhida = document.getElementById('selecaoMesaCliente').value;
             const chavesCarrinho = Object.keys(carrinho);
             
             if (chavesCarrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
 
-            // Medida Anti-Fantasma 1: Checagem de Geolocalização se configurado
-            const segAtiva = localStorage.getItem('travaGeoLocalizacao') === 'sim';
-            if (segAtiva) {
+            // Filtro de Segurança Anti-Fantasma por Geolocalização
+            if (localStorage.getItem('travaGeoLocalizacao') === 'sim') {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
-                        (pos) => prosseguirEnvioPedido(mesaEscolhida, chavesCarrinho),
-                        () => { alert("Segurança: Para pedir na lanchonete, ative e permita a Localização do celular!"); }
+                        () => prosseguirEnvio(mesaEscolhida, chavesCarrinho),
+                        () => { alert("⚠️ PEDIDO BLOQUEADO: Para realizar pedidos na lanchonete, você precisa ativar e permitir a localização no seu navegador."); }
                     );
-                } else { prosseguirEnvioPedido(mesaEscolhida, chavesCarrinho); }
+                } else {
+                    prosseguirEnvio(mesaEscolhida, chavesCarrinho);
+                }
             } else {
-                prosseguirEnvioPedido(mesaEscolhida, chavesCarrinho);
+                prosseguirEnvio(mesaEscolhida, chavesCarrinho);
             }
         }
 
-        function prosseguirEnvioPedido(mesa, chaves) {
+        function prosseguirEnvio(mesa, chaves) {
             const agora = new Date();
             const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            
-            // Geração de Código Único do Pedido (Base Segura Temporal)
-            const codigoPedido = "LJ-" + Math.floor(1000 + Math.random() * 9000) + "-" + agora.getMinutes();
+            const codigoPedido = "LJ-" + Math.floor(1000 + Math.random() * 9000);
 
-            let mensagem = `*🍔 PEDIDO CONFIRMADO - LE JOLLYE* \n\n`;
+            let mensagem = `*🍔 PEDIDO RECEBIDO - LE JOLLYE* \n\n`;
             mensagem += `*CÓDIGO:* ${codigoPedido}\n`;
             mensagem += `*LOCAL/MESA:* ${mesa}\n`;
             mensagem += `*HORÁRIO:* ${horaFormatada}\n`;
@@ -283,15 +296,13 @@
                 const subtotal = item.quantidade * item.preco;
                 totalGeral += subtotal;
                 mensagem += `${item.quantidade}x _${item.nome}_\n`;
-                
                 itensSalvar.push({ nome: item.nome, quantidade: item.quantidade, subtotal: subtotal });
             });
 
             mensagem += `----------------------------------\n`;
             mensagem += `*Total: R$ ${totalGeral.toFixed(2).replace('.', ',')}*\n\n`;
-            mensagem += `_Pedido autenticado no salão de forma segura._`;
 
-            // Grava no Histórico
+            // Grava no histórico local para gerenciamento do balcão
             let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
             historico.unshift({ id: Date.now(), codigo: codigoPedido, data: agora.toLocaleString('pt-BR'), cliente: mesa, itens: itensSalvar, total: totalGeral });
             localStorage.setItem('historicoPedidos', JSON.stringify(historico));
@@ -301,30 +312,229 @@
             limparCarrinho();
         }
 
-        // ----------------------------------------------------
-        // ABAS E OPERAÇÃO DO PAINEL ADMIN
-        // ----------------------------------------------------
+        // CONTROLADORES DO MODAL DO PAINEL
         function abrirPainelComSenha() {
-            if (prompt("Digite a senha de acesso:") === SENHA_PROMPT) {
+            if (prompt("Digite a senha do painel:") === SENHA_PROMPT) {
                 document.getElementById('modal-painel').classList.remove('hidden');
                 document.getElementById('secao-dinamica-painel').classList.add('hidden');
-            } else { alert("Senha incorreta!"); }
+            } else { alert("Senha inválida!"); }
         }
-
         function fecharPainel() { document.getElementById('modal-painel').classList.add('hidden'); }
 
-        // ABA: CADASTRO DE MERCADORIAS
+        // ==========================================
+        // FUNÇÕES DAS 6 ABAS DO PAINEL DE CONTROLE
+        // ==========================================
+
+        // 1. HISTÓRICO
+        function visualizarHistorico() {
+            const secao = document.getElementById('secao-dinamica-painel');
+            document.getElementById('titulo-secao-dinamica').innerText = "📋 Últimos Pedidos no Balcão";
+            secao.classList.remove('hidden');
+
+            const container = document.getElementById('container-dinamico-itens');
+            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+            container.innerHTML = '';
+
+            if (historico.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-2">Nenhum pedido efetuado ainda.</p>`;
+                return;
+            }
+
+            historico.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-3 border rounded-xl flex justify-between items-center text-xs shadow-sm";
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-gray-800">${p.codigo} - ${p.cliente}</p>
+                        <p class="text-gray-400 text-[10px]">${p.data} - Total: R$ ${p.total.toFixed(2).replace('.', ',')}</p>
+                    </div>
+                    <button onclick="imprimirPedidoDireto('${p.codigo}')" class="bg-blue-600 text-white px-3 py-1 rounded font-bold hover:bg-blue-700">🖨️ Imprimir</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function imprimirPedidoDireto(codigo) {
+            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+            const p = historico.find(item => item.codigo === codigo);
+            if(!p) return;
+
+            const areaPrint = document.getElementById('area-impressao');
+            let txt = `
+                <div class="quebra-pagina">
+                    <p style="text-align: center; font-weight: bold; font-size: 14px;">LE JOLLYE LANCHES</p>
+                    <p>--------------------------------</p>
+                    <p><b>CÓDIGO:</b> ${p.codigo}</p>
+                    <p><b>LOCAL:</b> ${p.cliente}</p>
+                    <p><b>DATA:</b> ${p.data}</p>
+                    <p>--------------------------------</p>
+            `;
+            p.itens.forEach(i => { txt += `<p>${i.quantidade}x ${i.nome}<br>  ↳ R$ ${i.subtotal.toFixed(2).replace('.', ',')}</p>`; });
+            txt += `
+                    <p>--------------------------------</p>
+                    <p><b>TOTAL DO PEDIDO: R$ ${p.total.toFixed(2).replace('.', ',')}</b></p>
+                </div>
+            `;
+            areaPrint.innerHTML = txt;
+            window.print();
+        }
+
+        // 2. WHATSAPP
+        function configurarWhatsapp() {
+            const numeroAtual = localStorage.getItem('numeroWhatsAppConfig') || "5521999999999";
+            const novoNumero = prompt("Digite o WhatsApp da loja (Apenas números com DDD e Código do País):\nExemplo: 5521999999999", numeroAtual);
+            if (novoNumero !== null && novoNumero.trim() !== "") {
+                localStorage.setItem('numeroWhatsAppConfig', novoNumero.replace(/\s+/g, ''));
+                alert("Número do WhatsApp atualizado com sucesso!");
+            }
+        }
+
+        // 3. DISPONIBILIDADE (PAUSAR / ATIVAR)
+        function abaDisponibilidadeMercadorias() {
+            const secao = document.getElementById('secao-dinamica-painel');
+            document.getElementById('titulo-secao-dinamica').innerText = "📦 Status de Disponibilidade";
+            secao.classList.remove('hidden');
+
+            const container = document.getElementById('container-dinamico-itens');
+            container.innerHTML = '';
+
+            listaProdutos.forEach(prod => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-2.5 border rounded-xl flex justify-between items-center text-xs shadow-sm";
+                const statusTxt = prod.ativo !== false ? "🟢 Ativo no Cardápio" : "🔴 Pausado (Esgotado)";
+                const btnTxt = prod.ativo !== false ? "Pausar" : "Ativar";
+                const btnCor = prod.ativo !== false ? "bg-red-500" : "bg-green-600";
+
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-gray-800">${prod.nome}</p>
+                        <p class="text-[10px] text-gray-500 font-semibold">${statusTxt}</p>
+                    </div>
+                    <button onclick="alternarStatusProduto(${prod.id})" class="${btnCor} text-white px-3 py-1 rounded font-bold">${btnTxt}</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function alternarStatusProduto(id) {
+            const prod = listaProdutos.find(p => p.id === id);
+            if(prod) {
+                prod.ativo = (prod.ativo === undefined) ? false : !prod.ativo;
+                localStorage.setItem('bancoProdutos', JSON.stringify(listaProdutos));
+                abaDisponibilidadeMercadorias();
+                renderizarProdutos(listaProdutos);
+            }
+        }
+
+        // 4. ADICIONAR PRODUTOS (MERCADORIAS)
         function abaAdicionarMercadoria() {
             const secao = document.getElementById('secao-dinamica-painel');
-            document.getElementById('titulo-secao-dinamica').innerText = "➕ Cadastrar Nova Mercadoria";
+            document.getElementById('titulo-secao-dinamica').innerText = "➕ Cadastrar Novo Produto";
             secao.classList.remove('hidden');
 
             document.getElementById('container-dinamico-itens').innerHTML = `
                 <div class="bg-gray-50 p-4 rounded-xl border text-xs space-y-3">
                     <div>
-                        <label class="block font-bold mb-1 text-gray-700">Nome do Lanche/Bebida:</label>
-                        <input type="text" id="addNome" placeholder="Ex: X-Salada Premium" class="w-full p-2 border rounded">
+                        <label class="block font-bold mb-1 text-gray-700">Nome do Produto:</label>
+                        <input type="text" id="addNome" placeholder="Ex: X-Salada Especial" class="w-full p-2 border rounded">
                     </div>
                     <div>
-                        <label class="block font-bold mb-1 text-gray-700">Descrição:</label>
-                        <input type="text" id="add
+                        <label class="block font-bold mb-1 text-gray-700">Descrição/Ingredientes:</label>
+                        <input type="text" id="addDesc" placeholder="Ex: Pão, carne 150g, alface, tomate e queijo." class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1 text-gray-700">Preço de Venda (R$):</label>
+                        <input type="number" step="0.01" id="addPreco" placeholder="Ex: 24.90" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1 text-gray-700">Endereço (URL) da Imagem:</label>
+                        <input type="text" id="addImg" value="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500" class="w-full p-2 border rounded">
+                    </div>
+                    <button onclick="salvarNovoProduto()" class="w-full bg-emerald-600 text-white p-2.5 rounded font-bold hover:bg-emerald-700 transition shadow">Incluir no Cardápio</button>
+                </div>
+            `;
+        }
+
+        function salvarNovoProduto() {
+            const nome = document.getElementById('addNome').value.trim();
+            const desc = document.getElementById('addDesc').value.trim();
+            const preco = parseFloat(document.getElementById('addPreco').value);
+            const img = document.getElementById('addImg').value.trim();
+
+            if (!nome || !desc || isNaN(preco)) { alert("Por favor, preencha todos os campos obrigatórios."); return; }
+
+            listaProdutos.push({ id: Date.now(), nome: nome, descricao: desc, preco: preco, imagem: img, ativo: true });
+            localStorage.setItem('bancoProdutos', JSON.stringify(listaProdutos));
+            
+            alert("Produto cadastrado com sucesso!");
+            renderizarProdutos(listaProdutos);
+            abaAdicionarMercadoria();
+        }
+
+        // 5. GERENCIAR MESAS
+        function abaGerenciarMesas() {
+            const secao = document.getElementById('secao-dinamica-painel');
+            document.getElementById('titulo-secao-dinamica').innerText = "🪑 Mesas Disponíveis no Sistema";
+            secao.classList.remove('hidden');
+
+            let htmlLista = `<div class="space-y-1.5 max-h-40 overflow-y-auto mb-3">`;
+            listaMesas.forEach((mesa, idx) => {
+                htmlLista += `
+                    <div class="flex justify-between items-center bg-white p-2 border rounded-lg text-xs shadow-sm">
+                        <span class="font-bold text-gray-700">📍 ${mesa}</span>
+                        <button onclick="removerMesa(${idx})" class="text-red-500 font-bold hover:underline">Excluir</button>
+                    </div>`;
+            });
+            htmlLista += `</div>`;
+
+            document.getElementById('container-dinamico-itens').innerHTML = htmlLista + `
+                <div class="flex gap-2">
+                    <input type="text" id="novaMesaInput" placeholder="Ex: Mesa 06" class="p-2 border rounded-lg text-xs flex-1">
+                    <button onclick="adicionarMesa()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700">Criar Mesa</button>
+                </div>
+            `;
+        }
+
+        function adicionarMesa() {
+            const val = document.getElementById('novaMesaInput').value.trim();
+            if(!val) return;
+            listaMesas.push(val);
+            localStorage.setItem('bancoMesas', JSON.stringify(listaMesas));
+            atualizarSelectMesas();
+            abaGerenciarMesas();
+        }
+
+        function removerMesa(idx) {
+            listaMesas.splice(idx, 1);
+            localStorage.setItem('bancoMesas', JSON.stringify(listaMesas));
+            atualizarSelectMesas();
+            abaGerenciarMesas();
+        }
+
+        // 6. SEGURANÇA (TRAVA LOCALIZAÇÃO)
+        function abaConfigurarSeguranca() {
+            const secao = document.getElementById('secao-dinamica-painel');
+            document.getElementById('titulo-secao-dinamica').innerText = "🛡️ Bloqueio de Pedidos Falsos";
+            secao.classList.remove('hidden');
+
+            const geoAtiva = localStorage.getItem('travaGeoLocalizacao') === 'sim';
+
+            document.getElementById('container-dinamico-itens').innerHTML = `
+                <div class="bg-white p-4 border rounded-xl text-xs space-y-3 shadow-sm">
+                    <p class="text-gray-600 leading-relaxed">Ativando essa opção, o navegador do cliente exigirá o uso do GPS do celular dele para enviar o pedido. Isso evita pedidos fantasmas vindos de fora do bairro ou da cidade.</p>
+                    <label class="flex items-center gap-2 font-bold cursor-pointer text-red-700 bg-red-50 p-2 rounded-lg">
+                        <input type="checkbox" id="checkGeo" ${geoAtiva ? 'checked' : ''} onchange="alterarTravaSeguranca()">
+                        Ativar Trava por Geolocalização Obrigatória
+                    </label>
+                </div>
+            `;
+        }
+
+        function alterarTravaSeguranca() {
+            const check = document.getElementById('checkGeo').checked;
+            localStorage.setItem('travaGeoLocalizacao', check ? 'sim' : 'nao');
+            alert("Configuração de segurança atualizada!");
+        }
+    </script>
+</body>
+</html>
