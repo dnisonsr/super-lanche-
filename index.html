@@ -37,7 +37,7 @@
         @media (min-width: 640px) { .splash-logo { width: 160px; height: 160px; } }
         #carrinho-flutuante {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             right: 20px;
             z-index: 999;
             background: #630f24;
@@ -126,6 +126,39 @@
             cursor: pointer;
         }
         .btn-print:hover { background: #3a5a8a; }
+
+        /* Rodapé fixo */
+        .footer-assinatura {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #d4af37;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.75rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            z-index: 998;
+            border-top: 1px solid #d4af37;
+            opacity: 0.85;
+        }
+        .footer-assinatura a {
+            color: #d4af37;
+            text-decoration: none;
+        }
+        .footer-assinatura a:hover {
+            color: #f0d060;
+        }
+        /* Ajuste para o carrinho flutuante não sobrepor o rodapé */
+        #carrinho-flutuante {
+            bottom: 80px;
+        }
+        /* Ajuste no padding do body para o rodapé */
+        body {
+            padding-bottom: 70px;
+        }
     </style>
 </head>
 <body>
@@ -366,7 +399,7 @@
                 </div>
             </div>
 
-            <!-- CONFIGURAÇÕES (com Backup) -->
+            <!-- CONFIGURAÇÕES -->
             <div id="tab-configuracoes" class="tab-content hidden">
                 <div class="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto">
                     <h3 class="font-bold text-2xl text-[#630f24] mb-6">Configurações Gerais</h3>
@@ -387,11 +420,11 @@
                         <button type="submit" class="btn-gold px-6 py-3 rounded-xl transition w-full">Salvar Configurações</button>
                     </form>
                     <div id="config-status" class="mt-4 text-sm text-green-600 hidden font-medium">✅ Configurações salvas!</div>
-                    
+
                     <!-- BACKUP -->
                     <div class="mt-6 pt-6 border-t border-gray-200">
                         <h4 class="font-bold text-lg mb-3">💾 Backup do Sistema</h4>
-                        <p class="text-sm text-gray-500 mb-3">Exporte ou importe todos os dados do sistema (categorias, produtos, mesas, pedidos e configurações).</p>
+                        <p class="text-sm text-gray-500 mb-3">Exporte ou importe todos os dados do sistema.</p>
                         <div class="flex flex-wrap gap-3">
                             <button onclick="exportarBackup()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
                                 <i class="fas fa-download mr-1"></i> Exportar Backup
@@ -401,15 +434,47 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- ALTERAR SENHA -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="font-bold text-lg mb-3">🔑 Alterar Senha do Painel</h4>
+                        <form id="form-alterar-senha" onsubmit="alterarSenha(event)">
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Senha atual</label>
+                                <input type="password" id="senha-atual" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Nova senha</label>
+                                <input type="password" id="nova-senha" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" required minlength="4">
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Confirmar nova senha</label>
+                                <input type="password" id="confirmar-senha" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" required>
+                            </div>
+                            <button type="submit" class="btn-gold px-6 py-3 rounded-xl transition w-full">Alterar Senha</button>
+                        </form>
+                        <div id="status-senha" class="mt-3 text-sm hidden"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- RODAPÉ FIXO COM ASSINATURA -->
+    <div class="footer-assinatura">
+        &copy; 2026 <a href="#" onclick="event.preventDefault()">Denis Moreno</a> &bull; Todos os direitos reservados.
+    </div>
+
     <script>
         // ========== CONFIGURAÇÕES ==========
-        const ADMIN_PASSWORD = 'admin123';
+        const DEFAULT_PASSWORD = 'admin123';
         const SPLASH_DURATION = 3500;
+
+        // Obtém a senha do localStorage ou usa a padrão
+        function getAdminPassword() {
+            const saved = localStorage.getItem('admin_password');
+            return saved || DEFAULT_PASSWORD;
+        }
 
         // ========== FUNÇÕES DE CONFIG ==========
         function getConfig() {
@@ -689,7 +754,8 @@
         function fazerLogin(e) {
             e.preventDefault();
             const senha = document.getElementById('senha-login').value;
-            if (senha === ADMIN_PASSWORD) {
+            const senhaCorreta = getAdminPassword();
+            if (senha === senhaCorreta) {
                 fecharLogin();
                 document.getElementById('view-public').classList.remove('active');
                 document.getElementById('view-admin').classList.add('active');
@@ -1067,7 +1133,7 @@
             renderizarPedidosAdmin();
         }
 
-        // ========== IMPRESSÃO DE PEDIDO ==========
+        // ========== IMPRESSÃO ==========
         function imprimirPedido(id) {
             const pedidos = getPedidos();
             const pedido = pedidos.find(p => p.id === id);
@@ -1369,6 +1435,40 @@
             input.click();
         }
 
+        // ========== ALTERAR SENHA ==========
+        function alterarSenha(e) {
+            e.preventDefault();
+            const atual = document.getElementById('senha-atual').value;
+            const nova = document.getElementById('nova-senha').value;
+            const confirmar = document.getElementById('confirmar-senha').value;
+            const status = document.getElementById('status-senha');
+
+            if (atual !== getAdminPassword()) {
+                status.textContent = '❌ Senha atual incorreta.';
+                status.className = 'mt-3 text-sm text-red-600';
+                status.classList.remove('hidden');
+                return;
+            }
+            if (nova.length < 4) {
+                status.textContent = '❌ A nova senha deve ter pelo menos 4 caracteres.';
+                status.className = 'mt-3 text-sm text-red-600';
+                status.classList.remove('hidden');
+                return;
+            }
+            if (nova !== confirmar) {
+                status.textContent = '❌ As senhas não coincidem.';
+                status.className = 'mt-3 text-sm text-red-600';
+                status.classList.remove('hidden');
+                return;
+            }
+
+            localStorage.setItem('admin_password', nova);
+            status.textContent = '✅ Senha alterada com sucesso! Use a nova senha no próximo login.';
+            status.className = 'mt-3 text-sm text-green-600';
+            status.classList.remove('hidden');
+            document.getElementById('form-alterar-senha').reset();
+        }
+
         // ========== ADMIN - CONFIGURAÇÕES ==========
         function carregarConfiguracoes() {
             const config = getConfig();
@@ -1383,6 +1483,7 @@
                 exibicao.className = 'text-lg font-bold text-red-500';
             }
             document.getElementById('config-status').classList.add('hidden');
+            document.getElementById('status-senha').classList.add('hidden');
         }
         function salvarConfiguracoes(e) {
             e.preventDefault();
