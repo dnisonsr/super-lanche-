@@ -11,24 +11,17 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         .hide-scroll::-webkit-scrollbar { display: none; }
-        
-        @media print {
-            body * { display: none !important; }
-            #area-print, #area-print * { display: block !important; }
-            #area-print { position: absolute; left:0; top:0; width:100%; font-family: monospace; font-size: 14px; color: #000; }
-            #area-print img { display: block !important; margin: 10px auto; max-width: 180px; }
-        }
         .tab-active { border-bottom: 3px solid #d4af37; color: #d4af37; font-weight: bold; }
     </style>
 </head>
 <body class="bg-gray-50 pb-32">
 
+    <!-- SPLASH SCREEN -->
     <div id="splash" class="fixed inset-0 z-[100] flex flex-col justify-center items-center bg-[#630f24]" style="opacity: 1; transition: opacity 0.4s ease;">
         <img src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" class="w-48 h-48 rounded-full shadow-2xl mb-6 border-4 border-[#d4af37]">
         <div class="flex flex-col items-center gap-2">
@@ -37,29 +30,496 @@
         </div>
     </div>
 
-    <header class="bg-[#630f24] text-white p-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 right-0 p-4">
-            <button onclick="abrirAdmin()" class="bg-black/20 p-2 rounded-full hover:bg-black/40"><i class="fas fa-user-shield"></i></button>
+    <!-- TELA da LOJA (CLIENTE) -->
+    <section id="view-loja" class="block">
+        <header class="bg-[#630f24] text-white p-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4">
+                <button onclick="abrirAdmin()" class="bg-black/20 p-2 rounded-full hover:bg-black/40 text-white"><i class="fas fa-user-shield"></i></button>
+            </div>
+            <div class="flex flex-col items-center">
+                <img src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" class="w-20 h-20 rounded-full border-2 border-[#d4af37] mb-3 shadow-lg">
+                <h1 class="text-2xl font-bold text-[#d4af37]">Le Jollye Lanches</h1>
+                <div id="status-loja-badge" class="mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white">Aberto</div>
+            </div>
+            
+            <div class="mt-6 w-full max-w-md mx-auto">
+                <div class="relative">
+                    <input type="text" id="inputBusca" oninput="renderLoja()" placeholder="Buscar no cardápio..." class="w-full bg-white/10 border border-white/20 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:bg-white/20 transition-all text-white placeholder-white/50">
+                    <i class="fas fa-search absolute left-4 top-4 opacity-50 text-white"></i>
+                </div>
+                <div id="lista-categorias-loja" class="flex gap-2 mt-4 overflow-x-auto hide-scroll pb-2"></div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" id="container-produtos-loja"></main>
+    </section>
+
+    <!-- TELA DO PAINEL ADMIN -->
+    <section id="view-admin" class="hidden max-w-4xl mx-auto p-4 mt-4">
+        <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-lock mr-2 text-[#630f24]"></i>Painel Admin</h2>
+            <button onclick="abrirLoja()" class="text-sm bg-gray-200 px-4 py-2 rounded-xl font-semibold hover:bg-gray-300 transition-all">Voltar à Loja</button>
         </div>
-        <div class="flex flex-col items-center">
-            <img id="store-logo-header" src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" class="w-20 h-20 rounded-full border-2 border-[#d4af37] mb-3 shadow-lg">
-            <h1 id="store-name" class="text-2xl font-bold text-[#d4af37]">Le Jollye Lanches</h1>
-            <p class="text-[10px] opacity-80 uppercase tracking-tighter">Qualidade em cada mordida</p>
+
+        <!-- Configurações de Fluxo da Loja -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-center justify-between">
+            <div>
+                <h3 class="font-bold text-gray-800">Funcionamento do Estabelecimento</h3>
+                <p class="text-xs text-gray-400">Ative ou desative pedidos no cardápio</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="btn-status-aberto" onclick="mudarStatusLoja(true)" class="px-4 py-2 rounded-xl font-bold text-xs uppercase transition-all">Aberto</button>
+                <button id="btn-status-fechado" onclick="mudarStatusLoja(false)" class="px-4 py-2 rounded-xl font-bold text-xs uppercase transition-all">Fechado</button>
+            </div>
+        </div>
+
+        <!-- Abas do Painel -->
+        <div class="flex gap-4 border-b border-gray-200 mb-4 text-sm font-semibold text-gray-400">
+            <button id="aba-produtos" onclick="mudarAbaAdmin('produtos')" class="pb-2 tab-active">Produtos</button>
+            <button id="aba-categorias" onclick="mudarAbaAdmin('categorias')" class="pb-2">Categorias</button>
+        </div>
+
+        <!-- Conteúdo Aba Produtos -->
+        <div id="conteudo-admin-produtos" class="space-y-4">
+            <div class="flex justify-end">
+                <button onclick="abrirFormularioProduto()" class="bg-[#630f24] text-white px-4 py-2.5 rounded-xl font-semibold text-xs hover:bg-[#520c1d] transition-all"><i class="fas fa-plus mr-2"></i>Novo Produto</button>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 border-b text-gray-500 font-bold">
+                            <th class="p-4">Produto</th>
+                            <th class="p-4">Categoria</th>
+                            <th class="p-4">Preço</th>
+                            <th class="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-produtos-admin"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Conteúdo Aba Categorias -->
+        <div id="conteudo-admin-categorias" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-2">
+                <input type="text" id="novo-nome-categoria" placeholder="Nome da nova categoria..." class="flex-1 border rounded-xl p-2.5 text-sm focus:outline-none focus:border-[#630f24]">
+                <button onclick="adicionarCategoria()" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-semibold text-xs hover:bg-emerald-700 transition-all">Adicionar</button>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <ul id="lista-categorias-admin" class="divide-y"></ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- TELA DE FORMULÁRIO (CADASTRO / EDIÇÃO) -->
+    <section id="view-formulario" class="hidden max-w-2xl mx-auto p-4 mt-4">
+        <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 id="titulo-formulario" class="text-lg font-bold text-gray-800">Novo Produto</h2>
+                <button onclick="abrirAdmin()" class="text-sm text-gray-500 hover:text-gray-800">Cancelar</button>
+            </div>
+            <form id="form-produto" onsubmit="salvarProduto(event)" class="space-y-4">
+                <input type="hidden" id="form-id-produto">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Nome do Produto</label>
+                    <input type="text" id="form-nome" class="w-full border rounded-xl p-3 text-sm focus:outline-none focus:border-[#630f24]" required>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Categoria</label>
+                        <select id="form-categoria" class="w-full border rounded-xl p-3 text-sm bg-white focus:outline-none focus:border-[#630f24]" required></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Preço (R$)</label>
+                        <input type="number" step="0.01" id="form-preco" class="w-full border rounded-xl p-3 text-sm focus:outline-none focus:border-[#630f24]" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Descrição / Ingredientes</label>
+                    <textarea id="form-descricao" rows="3" class="w-full border rounded-xl p-3 text-sm focus:outline-none focus:border-[#630f24]" placeholder="Ex: Pão, carne de 150g, queijo cheddar..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">URL da Imagem (Opcional)</label>
+                    <input type="url" id="form-imagem" class="w-full border rounded-xl p-3 text-sm focus:outline-none focus:border-[#630f24]" placeholder="https://exemplo.com/foto.jpg">
+                </div>
+                <button type="submit" class="w-full bg-[#630f24] text-white py-3 rounded-xl font-bold hover:bg-[#520c1d] transition-all">Salvar Alterações</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- BARRA DO CARRINHO FIXO (CLIENTE) -->
+    <div id="carrinho-fixo" class="hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] p-4 z-40 rounded-t-3xl border-t border-gray-100 max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-3">
+            <div>
+                <p class="text-xs text-gray-400 font-semibold uppercase">Seu Carrinho</p>
+                <p class="text-lg font-bold text-gray-800" id="carrinho-total">Total: R$ 0,00</p>
+            </div>
+            <button onclick="toggleDetalhesCarrinho()" class="text-xs font-bold text-[#630f24] bg-[#630f24]/10 px-3 py-2 rounded-xl">
+                Ver Itens (<span id="carrinho-qtd">0</span>)
+            </button>
         </div>
         
-        <div class="mt-6 w-full max-w-md mx-auto">
-            <div class="relative">
-                <input type="text" id="inputBusca" oninput="renderLoja()" placeholder="Buscar no cardápio..." class="w-full bg-white/10 border border-white/20 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:bg-white/20 transition-all">
-                <i class="fas fa-search absolute left-4 top-4 opacity-50"></i>
-            </div>
-            <div id="lista-categorias-loja" class="flex gap-2 mt-4 overflow-x-auto hide-scroll pb-2"></div>
-        </div>
-    </header>
+        <!-- Detalhes Ocultos do Carrinho expandem aqui -->
+        <div id="carrinho-detalhes" class="hidden max-h-48 overflow-y-auto mb-4 border-t pt-3 space-y-2"></div>
 
-    <main class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4" id="container-produtos-loja"></main>
+        <button onclick="finalizarPedidoWhatsApp()" class="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-emerald-700 transition-all text-sm">
+            <i class="fab fa-whatsapp text-lg"></i> Enviar Pedido via WhatsApp
+        </button>
+    </div>
 
+    <!-- FOOTER -->
     <footer class="w-full text-center py-6 text-gray-400 text-xs font-semibold tracking-wide">
         By Denis Moreno 2026
     </footer>
 
-    <div id="carrinho-fixo" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] p-4 z-40 rounded-t-3xl border-t border-gray-
+    <!-- LOGICA E ENGINE COMPLETA -->
+    <script>
+        // Dados Padrão (Caso o LocalStorage esteja limpo)
+        const categoriasIniciais = ["Lanches", "Bebidas", "Porções", "Sobremesas"];
+        const produtosIniciais = [
+            { id: 1, nome: "X-Burger Especial", preco: 22.90, categoria: "Lanches", desc: "Hambúrguer artesanal de 150g, muito queijo prato e molho especial.", img: "" },
+            { id: 2, nome: "Batata Frita Suprema", preco: 16.00, categoria: "Porções", desc: "Batata crocante acompanhada de cheddar cremoso e bacon picadinho.", img: "" },
+            { id: 3, nome: "Coca-Cola Lata", preco: 6.00, categoria: "Bebidas", desc: "Lata 350ml trincando de gelada.", img: "" }
+        ];
+
+        // Inicialização do Banco de Dados Local
+        let categorias = JSON.parse(localStorage.getItem('le_jollye_categorias')) || categoriasIniciais;
+        let produtos = JSON.parse(localStorage.getItem('le_jollye_produtos')) || produtosIniciais;
+        let lojaAberta = localStorage.getItem('le_jollye_status') !== 'false'; // Padrão: Aberto
+        
+        let carrinho = [];
+        let categoriaAtivaLoja = "Todos";
+
+        // CONFIGURAÇÃO DE ROTAS E CORREÇÃO DO LOOP INFINITO DO GITHUB PAGES
+        window.onload = function() {
+            // Salva dados iniciais se for a primeira execução
+            if(!localStorage.getItem('le_jollye_produtos')) salvarNoStorage();
+
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 400);
+                }
+            }, 800);
+
+            // Verifica o hash da rota atual sem forçar recarregamento de página
+            gerenciarRotas();
+            mudarStatusLoja(lojaAberta);
+        };
+
+        window.onhashchange = gerenciarRotas;
+
+        function gerenciarRotas() {
+            const hash = window.location.hash;
+            if (hash === '#admin') {
+                abrirAdmin();
+            } else if (hash === '#cadastro') {
+                abrirFormularioProduto();
+            } else {
+                abrirLoja();
+            }
+        }
+
+        function salvarNoStorage() {
+            localStorage.setItem('le_jollye_categorias', JSON.stringify(categorias));
+            localStorage.setItem('le_jollye_produtos', JSON.stringify(produtos));
+            localStorage.setItem('le_jollye_status', lojaAberta);
+        }
+
+        // CONTROLADORES DE VISIBILIDADE DAS TELAS
+        function abrirLoja() {
+            window.location.hash = '';
+            document.getElementById('view-loja').classList.remove('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-formulario').classList.add('hidden');
+            renderCategoriasLoja();
+            renderLoja();
+            atualizarBarraCarrinho();
+        }
+
+        function abrirAdmin() {
+            window.location.hash = 'admin';
+            document.getElementById('view-loja').classList.add('hidden');
+            document.getElementById('view-admin').classList.remove('hidden');
+            document.getElementById('view-formulario').classList.add('hidden');
+            document.getElementById('carrinho-fixo').classList.add('hidden');
+            renderAdminProdutos();
+            renderAdminCategorias();
+        }
+
+        function abrirFormularioProduto(id = null) {
+            window.location.hash = 'cadastro';
+            document.getElementById('view-loja').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-formulario').classList.remove('hidden');
+            
+            // Popula o select de categorias do formulário
+            const select = document.getElementById('form-categoria');
+            select.innerHTML = categorias.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
+            if (id) {
+                document.getElementById('titulo-formulario').innerText = "Editar Produto";
+                const prod = produtos.find(p => p.id == id);
+                if(prod) {
+                    document.getElementById('form-id-produto').value = prod.id;
+                    document.getElementById('form-nome').value = prod.nome;
+                    document.getElementById('form-categoria').value = prod.categoria;
+                    document.getElementById('form-preco').value = prod.preco;
+                    document.getElementById('form-descricao').value = prod.desc;
+                    document.getElementById('form-imagem').value = prod.img;
+                }
+            } else {
+                document.getElementById('titulo-formulario').innerText = "Novo Produto";
+                document.getElementById('form-id-produto').value = '';
+                document.getElementById('form-produto').reset();
+            }
+        }
+
+        // FUNÇÕES DO PAINEL ADMINISTRATIVO
+        function mudarAbaAdmin(aba) {
+            if (aba === 'produtos') {
+                document.getElementById('aba-produtos').classList.add('tab-active');
+                document.getElementById('aba-categorias').classList.remove('tab-active');
+                document.getElementById('conteudo-admin-produtos').classList.remove('hidden');
+                document.getElementById('conteudo-admin-categorias').classList.add('hidden');
+            } else {
+                document.getElementById('aba-produtos').classList.remove('tab-active');
+                document.getElementById('aba-categorias').classList.add('tab-active');
+                document.getElementById('conteudo-admin-produtos').classList.add('hidden');
+                document.getElementById('conteudo-admin-categorias').classList.remove('hidden');
+            }
+        }
+
+        function mudarStatusLoja(aberto) {
+            lojaAberta = aberto;
+            const badge = document.getElementById('status-loja-badge');
+            const btnAberto = document.getElementById('btn-status-aberto');
+            const btnFechado = document.getElementById('btn-status-fechado');
+
+            if (aberto) {
+                badge.innerText = "Aberto";
+                badge.className = "mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white";
+                btnAberto.className = "px-4 py-2 rounded-xl font-bold text-xs uppercase bg-emerald-600 text-white";
+                btnFechado.className = "px-4 py-2 rounded-xl font-bold text-xs uppercase bg-gray-100 text-gray-400 hover:bg-gray-200";
+            } else {
+                badge.innerText = "Fechado";
+                badge.className = "mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500 text-white";
+                btnAberto.className = "px-4 py-2 rounded-xl font-bold text-xs uppercase bg-gray-100 text-gray-400 hover:bg-gray-200";
+                btnFechado.className = "px-4 py-2 rounded-xl font-bold text-xs uppercase bg-rose-600 text-white";
+            }
+            salvarNoStorage();
+        }
+
+        function renderAdminProdutos() {
+            const tbody = document.getElementById('tabela-produtos-admin');
+            tbody.innerHTML = produtos.map(prod => `
+                <tr class="border-b hover:bg-gray-50 text-gray-700">
+                    <td class="p-4 font-semibold">${prod.nome}</td>
+                    <td class="p-4 text-xs"><span class="bg-gray-100 px-2 py-1 rounded-md">${prod.categoria}</span></td>
+                    <td class="p-4 font-medium text-[#630f24]">R$ ${parseFloat(prod.preco).toFixed(2)}</td>
+                    <td class="p-4 flex justify-center gap-2">
+                        <button onclick="abrirFormularioProduto(${prod.id})" class="p-2 bg-amber-500 text-white rounded-lg text-xs hover:bg-amber-600"><i class="fas fa-edit"></i></button>
+                        <button onclick="deletarProduto(${prod.id})" class="p-2 bg-rose-600 text-white rounded-lg text-xs hover:bg-rose-700"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function salvarProduto(e) {
+            e.preventDefault();
+            const id = document.getElementById('form-id-produto').value;
+            const nome = document.getElementById('form-nome').value;
+            const categoria = document.getElementById('form-categoria').value;
+            const preco = parseFloat(document.getElementById('form-preco').value);
+            const desc = document.getElementById('form-descricao').value;
+            const img = document.getElementById('form-imagem').value;
+
+            if (id) {
+                // Modo Edição
+                produtos = produtos.map(p => p.id == id ? { id: parseInt(id), nome, categoria, preco, desc, img } : p);
+            } else {
+                // Modo Novo Cadastro
+                const novoId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 1;
+                produtos.push({ id: novoId, nome, categoria, preco, desc, img });
+            }
+
+            salvarNoStorage();
+            abrirAdmin();
+        }
+
+        function deletarProduto(id) {
+            if(confirm("Tem certeza que deseja remover este produto do cardápio?")) {
+                produtos = produtos.filter(p => p.id !== id);
+                salvarNoStorage();
+                renderAdminProdutos();
+            }
+        }
+
+        function renderAdminCategorias() {
+            const ul = document.getElementById('lista-categorias-admin');
+            ul.innerHTML = categorias.map(cat => `
+                <li class="py-3 flex justify-between items-center text-gray-700 font-semibold text-sm">
+                    <span>${cat}</span>
+                    <button onclick="deletarCategoria('${cat}')" class="text-rose-600 hover:text-rose-800 p-1"><i class="fas fa-times-circle"></i></button>
+                </li>
+            `).join('');
+        }
+
+        function adicionarCategoria() {
+            const input = document.getElementById('novo-nome-categoria');
+            const nome = input.value.trim();
+            if (nome && !categorias.includes(nome)) {
+                categorias.push(nome);
+                input.value = '';
+                salvarNoStorage();
+                renderAdminCategorias();
+            }
+        }
+
+        function deletarCategoria(nome) {
+            if(confirm(`Excluir a categoria "${nome}"? Os produtos vinculados a ela continuarão salvos.`)) {
+                categorias = categorias.filter(c => c !== nome);
+                salvarNoStorage();
+                renderAdminCategorias();
+            }
+        }
+
+        // RENDERIZADORES DO CARDÁPIO (CLIENTE)
+        function renderCategoriasLoja() {
+            const container = document.getElementById('lista-categorias-loja');
+            let html = `<button onclick="filtrarCategoria('Todos')" class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${categoriaAtivaLoja === 'Todos' ? 'bg-[#d4af37] text-[#630f24]' : 'bg-white/10 text-white hover:bg-white/20'}">Todos</button>`;
+            
+            html += categorias.map(cat => `
+                <button onclick="filtrarCategoria('${cat}')" class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${categoriaAtivaLoja === cat ? 'bg-[#d4af37] text-[#630f24]' : 'bg-white/10 text-white hover:bg-white/20'}">${cat}</button>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        function filtrarCategoria(cat) {
+            categoriaAtivaLoja = cat;
+            renderCategoriasLoja();
+            renderLoja();
+        }
+
+        function renderLoja() {
+            const container = document.getElementById('container-produtos-loja');
+            const busca = document.getElementById('inputBusca').value.toLowerCase();
+            if (!container) return;
+            container.innerHTML = '';
+
+            const filtrados = produtos.filter(p => {
+                const matchesCategory = (categoriaAtivaLoja === "Todos" || p.categoria === categoriaAtivaLoja);
+                const matchesSearch = p.nome.toLowerCase().includes(busca) || p.desc.toLowerCase().includes(busca);
+                return matchesCategory && matchesSearch;
+            });
+
+            if(filtrados.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 font-medium">Nenhum produto encontrado nesta seção.</div>`;
+                return;
+            }
+
+            filtrados.forEach(p => {
+                const imgPlaceholder = p.img ? `<img src="${p.img}" class="w-20 h-20 rounded-2xl object-cover ml-3 border">` : '';
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center hover:shadow-md transition-all">
+                        <div class="flex-1">
+                            <span class="text-[9px] uppercase font-bold text-[#d4af37] tracking-wider bg-amber-50 px-2 py-0.5 rounded-md">${p.categoria}</span>
+                            <h3 class="font-bold text-gray-800 text-base mt-1">${p.nome}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-2">${p.desc || 'Sem descrição cadastrada.'}</p>
+                            <p class="text-[#630f24] font-bold mt-2">R$ ${parseFloat(p.preco).toFixed(2)}</p>
+                        </div>
+                        ${imgPlaceholder}
+                        <button onclick="adicionarAoCarrinho(${p.id})" class="bg-[#630f24] text-white p-2.5 rounded-xl ml-3 hover:bg-[#520c1d] transition-colors ${!lojaAberta ? 'opacity-40 cursor-not-allowed' : ''}" ${!lojaAberta ? 'disabled' : ''}>
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // INTERAÇÕES E FLUXO DO CARRINHO DE COMPRAS
+        function adicionarAoCarrinho(id) {
+            if (!lojaAberta) {
+                alert("Desculpe, o estabelecimento está fechado no momento e não aceita pedidos.");
+                return;
+            }
+            const produto = produtos.find(p => p.id === id);
+            if (produto) {
+                const itemExistente = carrinho.find(item => item.id === id);
+                if (itemExistente) {
+                    itemExistente.qtd++;
+                } else {
+                    carrinho.push({ ...produto, qtd: 1 });
+                }
+                atualizarBarraCarrinho();
+            }
+        }
+
+        function alterarQuantidadeCarrinho(id, operacao) {
+            const item = carrinho.find(i => i.id === id);
+            if(item) {
+                if(operacao === '+') item.qtd++;
+                if(operacao === '-') item.qtd--;
+                
+                carrinho = carrinho.filter(i => i.qtd > 0);
+                atualizarBarraCarrinho();
+            }
+        }
+
+        function atualizarBarraCarrinho() {
+            const barra = document.getElementById('carrinho-fixo');
+            const totalTxt = document.getElementById('carrinho-total');
+            const qtdTxt = document.getElementById('carrinho-qtd');
+            
+            if(carrinho.length === 0 || window.location.hash === '#admin') {
+                barra.classList.add('hidden');
+                return;
+            }
+            
+            barra.classList.remove('hidden');
+            const total = carrinho.reduce((acc, curr) => acc + (curr.preco * curr.qtd), 0);
+            const qtd = carrinho.reduce((acc, curr) => acc + curr.qtd, 0);
+
+            totalTxt.innerText = `Total: R$ ${total.toFixed(2)}`;
+            qtdTxt.innerText = qtd;
+
+            // Renderiza detalhes expandidos dentro do painel do carrinho
+            const detalhes = document.getElementById('carrinho-detalhes');
+            detalhes.innerHTML = carrinho.map(item => `
+                <div class="flex justify-between items-center text-xs bg-gray-50 p-2 rounded-xl">
+                    <span class="font-semibold text-gray-700">${item.nome} (x${item.qtd})</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="alterarQuantidadeCarrinho(${item.id}, '-')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded font-bold hover:bg-gray-300">-</button>
+                        <span class="font-bold text-[#630f24]">R$ ${(item.preco * item.qtd).toFixed(2)}</span>
+                        <button onclick="alterarQuantidadeCarrinho(${item.id}, '+')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded font-bold hover:bg-gray-300">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleDetalhesCarrinho() {
+            const container = document.getElementById('carrinho-detalhes');
+            container.classList.toggle('hidden');
+        }
+
+        function finalizarPedidoWhatsApp() {
+            if(carrinho.length === 0) return;
+            
+            let texto = `*🍔 NOVO PEDIDO - LE JOLLYE LANCHES* 🍔\n\n`;
+            carrinho.forEach(item => {
+                texto += `▪️ *${item.qtd}x* ${item.nome} _(R$ ${parseFloat(item.preco).toFixed(2)} un)_\n`;
+            });
+            
+            const total = carrinho.reduce((acc, curr) => acc + (curr.preco * curr.qtd), 0);
+            texto += `\n💰 *Total do Pedido:* R$ ${total.toFixed(2)}`;
+            texto += `\n\nOlá, gostaria de confirmar este pedido!`;
+
+            // Abre o redirecionamento universal para o WhatsApp
+            const urlEncoded = encodeURIComponent(texto);
+            window.open(`https://api.whatsapp.com/send?text=${urlEncoded}`, '_blank');
+        }
+    </script>
+</body>
+</html>
