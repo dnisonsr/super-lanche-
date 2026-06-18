@@ -43,8 +43,9 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans pb-44 overflow-hidden" id="body-root">
+<body class="bg-gray-100 font-sans pb-44" id="body-root">
 
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col justify-center items-center bg-[#630f24] p-6 transition-all duration-500">
         <div class="max-w-xs md:max-w-sm animate-pulse mb-6">
             <img src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" alt="Le Jollye Lanches Logo" class="w-full h-auto rounded-2xl shadow-2xl">
@@ -55,6 +56,7 @@
         </div>
     </div>
 
+    <!-- HEADER -->
     <header class="relative bg-cover bg-center h-64 md:h-80 shadow-inner flex flex-col justify-between items-center p-4 text-center" 
             style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1000');">
         
@@ -74,10 +76,12 @@
         </div>
     </header>
 
-    <div class="max-w-4xl mx-auto p-4">
+    <!-- PRODUTOS -->
+    <main class="max-w-4xl mx-auto p-4">
         <div id="produtos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </div>
+    </main>
 
+    <!-- BARRA DO CARRINHO (FIXA NO RODAPÉ) -->
     <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 z-40">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-2">
             <div>
@@ -96,4 +100,173 @@
                 </button>
             </div>
         </div>
-        <div class="text-
+    </div>
+
+    <!-- ÁREA OCULTA PARA IMPRESSÃO TÉRMICA -->
+    <div id="area-impressao" class="hidden"></div>
+
+    <!-- JAVASCRIPT DE LOGICA DO CARDÁPIO -->
+    <script>
+        // Dados dos Lanches (Exemplos)
+        const listaProdutos = [
+            { id: 1, nome: "X-Burguer Tradicional", descricao: "Pão, blend artesanal 150g, muito queijo prato e maionese da casa.", preco: 22.00, imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500" },
+            { id: 2, nome: "X-Bacon Especial", descricao: "Pão, blend 150g, queijo cheddar, tiras de bacon crocantes e barbecue.", preco: 26.50, imagem: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=500" },
+            { id: 3, nome: "Super Jollye Duplo", descricao: "Dois blends de 150g, muito bacon, dobro de queijo e cebola caramelizada.", preco: 34.00, imagem: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?q=80&w=500" },
+            { id: 4, nome: "Batata Frita Suprema", descricao: "Porção individual de batata frita com cheddar derretido e bacon.", preco: 15.00, imagem: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=500" },
+            { id: 5, nome: "Refrigerante Lata", descricao: "Coca-Cola, Guaraná Antarctica ou Fanta Laranja 350ml.", preco: 6.00, imagem: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500" }
+        ];
+
+        let carrinho = {};
+
+        // Remove a Splash Screen após carregar a página de forma segura
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('fade-out');
+                    setTimeout(() => splash.remove(), 600);
+                }
+            }, 1500);
+            renderizarProdutos(listaProdutos);
+        });
+
+        // Renderiza os produtos na tela
+        function renderizarProdutos(produtos) {
+            const container = document.getElementById('produtos');
+            container.innerHTML = '';
+
+            if (produtos.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 my-8 col-span-full">Nenhum lanche encontrado...</p>`;
+                return;
+            }
+
+            produtos.forEach(prod => {
+                const qtd = carrinho[prod.id] ? carrinho[prod.id].quantidade : 0;
+                
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-md overflow-hidden flex items-center p-3 gap-3 border border-gray-100";
+                card.innerHTML = `
+                    <img src="${prod.imagem}" alt="${prod.nome}" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-base font-bold text-gray-800 truncate">${prod.nome}</h3>
+                        <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${prod.descricao}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-sm font-extrabold text-green-600">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+                            
+                            <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                                <button onclick="alterarQuantidade(${prod.id}, -1)" class="w-7 h-7 bg-white text-gray-800 rounded-md font-bold shadow-sm hover:bg-gray-200 transition">-</button>
+                                <span id="qtd-${prod.id}" class="text-sm font-bold w-4 text-center">${qtd}</span>
+                                <button onclick="alterarQuantidade(${prod.id}, 1)" class="w-7 h-7 bg-[#630f24] text-white rounded-md font-bold shadow-sm hover:opacity-90 transition">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Altera a quantidade no carrinho de forma reativa
+        function alterarQuantidade(id, mudanca) {
+            const produto = listaProdutos.find(p => p.id === id);
+            
+            if (!carrinho[id]) {
+                carrinho[id] = { ...produto, quantidade: 0 };
+            }
+
+            carrinho[id].quantidade += mudanca;
+
+            if (carrinho[id].quantidade <= 0) {
+                delete carrinho[id];
+                const indicador = document.getElementById(`qtd-${id}`);
+                if (indicador) indicador.innerText = '0';
+            } else {
+                const indicador = document.getElementById(`qtd-${id}`);
+                if (indicador) indicador.innerText = carrinho[id].quantidade;
+            }
+
+            atualizarResumoCarrinho();
+        }
+
+        // Atualiza os valores na barra inferior
+        function atualizarResumoCarrinho() {
+            let totalItens = 0;
+            let valorTotal = 0;
+
+            for (let id in carrinho) {
+                totalItens += carrinho[id].quantidade;
+                valorTotal += carrinho[id].quantidade * carrinho[id].preco;
+            }
+
+            document.getElementById('itens').innerText = totalItens;
+            document.getElementById('total').innerText = valorTotal.toFixed(2).replace('.', ',');
+        }
+
+        // Filtra os produtos com base na busca
+        function filtrarProdutos() {
+            const termo = document.getElementById('buscaInput').value.toLowerCase();
+            const filtrados = listaProdutos.filter(p => 
+                p.nome.toLowerCase().includes(termo) || 
+                p.descricao.toLowerCase().includes(termo)
+            );
+            renderizarProdutos(filtrados);
+        }
+
+        // Limpa o carrinho de compras completamente
+        function limparCarrinho() {
+            carrinho = {};
+            atualizarResumoCarrinho();
+            
+            // Zera todos os contadores visualmente na tela
+            listaProdutos.forEach(p => {
+                const indicador = document.getElementById(`qtd-${p.id}`);
+                if (indicador) indicador.innerText = '0';
+            });
+            
+            alert('Carrinho limpo com sucesso!');
+        }
+
+        // Envia o pedido estruturado para o WhatsApp
+        function enviarPedido() {
+            const nomeCliente = document.getElementById('nomeClienteInput').value.trim();
+            
+            if (!nomeCliente) {
+                alert('Por favor, digite seu nome ou o número da mesa antes de enviar!');
+                return;
+            }
+
+            const chavesCarrinho = Object.keys(carrinho);
+            if (chavesCarrinho.length === 0) {
+                alert('Seu carrinho está vazio! Adicione algum lanche.');
+                return;
+            }
+
+            let mensagem = `*🍔 NOVO PEDIDO - LE JOLLYE LANCHES* \n\n`;
+            mensagem += `*Cliente/Mesa:* ${nomeCliente}\n`;
+            mensagem += `----------------------------------\n`;
+
+            let totalGeral = 0;
+            chavesCarrinho.forEach(id => {
+                const item = carrinho[id];
+                const subtotal = item.quantidade * item.preco;
+                totalGeral += subtotal;
+                mensagem += `${item.quantidade}x _${item.nome}_\n`;
+                mensagem += `   ↳ Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+            });
+
+            mensagem += `----------------------------------\n`;
+            mensagem += `*Total do Pedido: R$ ${totalGeral.toFixed(2).replace('.', ',')}*`;
+
+            // Substitua pelo número real do WhatsApp da sua lanchonete (Ex: 5521999999999)
+            const numeroTelefone = "5500000000000"; 
+            const urlFinal = `https://api.whatsapp.com/send?phone=${numeroTelefone}&text=${encodeURIComponent(mensagem)}`;
+            
+            window.open(urlFinal, '_blank');
+        }
+
+        // Abre o Painel Administrativo de forma simples
+        function abrirPainel() {
+            alert('Acesso ao Painel Admin / Sistema de Balcão.');
+        }
+    </script>
+</body>
+</html>
