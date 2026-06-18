@@ -16,11 +16,9 @@
            ESTILIZAÇÃO EXCLUSIVA PARA IMPRESSÃO TÉRMICA (58mm/80mm)
            ---------------------------------------------------- */
         @media print {
-            /* Esconde absolutamente tudo da tela do sistema */
             body * {
                 display: none !important;
             }
-            /* Mostra apenas a área do cupom de impressão */
             #area-impressao, #area-impressao * {
                 display: block !important;
             }
@@ -29,7 +27,7 @@
                 left: 0;
                 top: 0;
                 width: 100%;
-                font-family: 'Courier New', Courier, monospace; /* Fonte padrão de impressora */
+                font-family: 'Courier New', Courier, monospace;
                 color: #000 !important;
                 font-size: 12px;
                 line-height: 1.2;
@@ -37,7 +35,7 @@
                 margin: 0;
             }
             .quebra-pagina {
-                page-break-after: always; /* Força a impressora a avançar o papel entre as vias */
+                page-break-after: always;
                 border-bottom: 2px dashed #000;
                 padding-bottom: 20px;
                 margin-bottom: 20px;
@@ -167,9 +165,12 @@
             }, 3000);
         });
 
+        // 1. ADICIONEI A COXINHA DIRETAMENTE AQUI NA LISTA DE PRODUTOS PADRÃO
+        // Nota técnica: Substitua o link da Unsplash pelo caminho relativo como './assets/coxinha.jpg' quando salvar no seu GitHub.
         const produtosPadrao = [
             {nome:'X-Burguer', preco:20.00, foto:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500', descricao:'Delicioso hambúrguer artesanal com queijo derretido e molho especial.'},
             {nome:'Batata Frita', preco:15.00, foto:'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=500', descricao:'Porção de batatas fritas crocantes, sequinhas e salgadas na medida.'},
+            {nome:'Coxinha', preco:8.00, foto:'https://images.unsplash.com/photo-1624462966581-bc6d768cbce5?q=80&w=500', descricao:'Coxinha dourada e crocante com recheio super cremoso.'},
             {nome:'Refrigerante', preco:6.00, foto:'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500', descricao:'Lata trincando de gelada para acompanhar seu lanche.'}
         ];
 
@@ -180,13 +181,14 @@
         let whatsapp = localStorage.getItem('whatsapp') || '5521979883993';
         let nomeLoja = localStorage.getItem('nomeLoja') || 'Le Jollye Lanches';
 
+        // MUDANÇA DE SEGURANÇA: Alteração da chave de versão para limpar caches antigos e forçar a nova lista padrão em todos os navegadores.
         function carregarBancoDeDados() {
             try {
-                let dadosSalvos = localStorage.getItem('produtos_db_v5');
+                let dadosSalvos = localStorage.getItem('produtos_db_v6'); 
                 if (dadosSalvos) { produtos = JSON.parse(dadosSalvos); }
                 if (!produtos || produtos.length === 0) {
                     produtos = produtosPadrao;
-                    localStorage.setItem('produtos_db_v5', JSON.stringify(produtosPadrao));
+                    localStorage.setItem('produtos_db_v6', JSON.stringify(produtosPadrao));
                 }
             } catch (e) { produtos = produtosPadrao; }
             renderizar();
@@ -266,7 +268,6 @@
             renderizar();
         }
 
-        // Envia o pedido pelo WhatsApp e armazena os dados localmente para o caixa conseguir imprimir
         function enviarPedido() {
             if (carrinho.length == 0) { alert('Seu carrinho está vazio!'); return; }
             
@@ -287,7 +288,6 @@
             const minStr = String(agora.getMinutes()).padStart(2, '0');
             const tokenValidacao = mesaParam ? `MESA${mesaParam}-${horaStr}${minStr}` : `${horaStr}${minStr}`;
 
-            // Junta os dados estruturados do pedido para salvar no LocalStorage do navegador
             let itensArray = [];
             let resumo = {};
             carrinho.forEach(item => { resumo[item.nome] = (resumo[item.nome] || 0) + 1; });
@@ -307,10 +307,8 @@
                 total: carrinho.reduce((a, b) => a + Number(b.preco), 0)
             };
 
-            // Guarda esse pedido na memória para caso o micro do balcão queira imprimir diretamente por este aparelho
             localStorage.setItem('ultimo_pedido_gerado', JSON.stringify(dadosPedidoCompleto));
 
-            // Monta o texto legível e limpo para o WhatsApp
             let msg = `*🍔 NOVO PEDIDO - ${nomeLoja.toUpperCase()}* (${mesaAtual})\n`;
             msg += `----------------------------------------\n`;
             msg += `*Pedido:* #${numeroPedidoAleatorio}\n`;
@@ -336,16 +334,12 @@
             window.open(urlFinal, '_blank');
         }
 
-        /* ----------------------------------------------------
-           FUNÇÃO DE IMPRESSÃO GERADORA DE 2 VIAS (BALCÃO E COZINHA)
-           ---------------------------------------------------- */
         function executarImpressaoDuasVias(pedido) {
             const area = document.getElementById('area-impressao');
-            area.innerHTML = ''; // Limpa antes de montar
+            area.innerHTML = ''; 
 
             let totalFormatado = Number(pedido.total).toFixed(2).replace('.', ',');
 
-            // --- VIA 1: BALCÃO ---
             let html = `<div class="quebra-pagina">`;
             html += `<center><b style="font-size:14px;">${pedido.loja.toUpperCase()}</b><br>*** VIA DO BALCÃO ***</center><br>`;
             html += `<b>PEDIDO:</b> #${pedido.id}<br>`;
@@ -362,7 +356,6 @@
             html += `<center>Autenticação: ${pedido.autenticacao}</center>`;
             html += `</div>`;
 
-            // --- VIA 2: COZINHA (Sem os Preços para focar na produção) ---
             html += `<div>`;
             html += `<center><b style="font-size:16px;">*** VIA COZINHA ***</b><br><b style="font-size:14px;">${pedido.local.toUpperCase()}</b></center><br>`;
             html += `<b>PEDIDO:</b> #${pedido.id} | <b>HORA:</b> ${pedido.hora}<br>`;
@@ -375,7 +368,7 @@
             html += `</div>`;
 
             area.innerHTML = html;
-            window.print(); // Chama o driver de impressão do sistema operacional
+            window.print(); 
         }
 
         function imprimirUltimoPedidoPainel() {
@@ -384,90 +377,4 @@
             else { alert('Nenhum pedido recente encontrado na memória deste aparelho.'); }
         }
 
-        function imprimirDuasViasDoLocalStorage() {
-            imprimirUltimoPedidoPainel();
-        }
-
-        function abrirPainel() {
-            if (prompt('Digite a senha de administrador:') === 'admin') {
-                document.getElementById('painel').classList.remove('hidden');
-            } else { alert('Senha incorreta!'); }
-        }
-        function fecharPainel() { document.getElementById('painel').classList.add('hidden'); }
-
-        function salvarConfig() {
-            nomeLoja = document.getElementById('nomeLoja').value || nomeLoja;
-            whatsapp = document.getElementById('whatsapp').value || whatsapp;
-            localStorage.setItem('nomeLoja', nomeLoja);
-            localStorage.setItem('whatsapp', whatsapp);
-            alert('Configurações salvas!');
-            renderizar();
-        }
-
-        function salvarProduto() {
-            let nomeIn = document.getElementById('nome').value;
-            let precoIn = document.getElementById('preco').value;
-            let fotoIn = document.getElementById('fotoLink').value.trim();
-            let descIn = document.getElementById('descricao').value;
-            if(!nomeIn || !precoIn) { alert('Por favor, preencha nome e preço.'); return; }
-            let urlFoto = fotoIn ? fotoIn : '🍔';
-            produtos.push({ nome: nomeIn, preco: Number(precoIn), foto: urlFoto, descricao: descIn });
-            localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
-            document.getElementById('nome').value = '';
-            document.getElementById('preco').value = '';
-            document.getElementById('fotoLink').value = '';
-            document.getElementById('descricao').value = '';
-            alert('Produto adicionado com sucesso!');
-            renderizar();
-        }
-
-        function edit(i) {
-            let n = prompt('Nome do produto:', produtos[i].nome); if (n === null) return;
-            let p = prompt('Preço do produto:', produtos[i].preco); if (p === null) return;
-            let f = prompt('Link da Foto (URL):', produtos[i].foto); if (f === null) return;
-            let d = prompt('Descrição:', produtos[i].descricao); if (d === null) return;
-            produtos[i].nome = n; produtos[i].preco = Number(p); produtos[i].foto = f; produtos[i].descricao = d;
-            localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
-            renderizar();
-        }
-
-        function admin() {
-            let h = '';
-            produtos.forEach((p, i) => {
-                let fotoPreview = p.foto.length < 5 ? p.foto : '🖼️';
-                h += `
-                <div class="flex justify-between items-center border-b py-2 text-sm text-gray-700">
-                    <div class="flex items-center gap-2"><span>${fotoPreview}</span><span>${p.nome} - R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span></div>
-                    <div class="flex gap-2">
-                        <button onclick="edit(${i})" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600 transition">Editar</button>
-                        <button onclick="excluir(${i})" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition">Excluir</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('listaAdmin').innerHTML = h;
-        }
-
-        function excluir(i) {
-            if(confirm('Tem certeza que deseja excluir este produto?')) {
-                produtos.splice(i, 1);
-                localStorage.setItem('produtos_db_v5', JSON.stringify(produtos));
-                renderizar();
-            }
-        }
-
-        function gerarQR() {
-            let mesa = document.getElementById('mesa').value;
-            let div = document.getElementById('qrcode');
-            if(!mesa) { alert('Digite o número da mesa'); return; }
-            div.innerHTML = ''; div.classList.remove('hidden');
-            let urlLimpa = window.location.href.split('?')[0];
-            let urlMesa = urlLimpa + '?mesa=' + mesa;
-            div.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(urlMesa)}" alt="QR Code Mesa ${mesa}" class="mx-auto my-2 border p-2 bg-white shadow-sm rounded">`;
-        }
-
-        document.getElementById('nomeLoja').value = nomeLoja;
-        document.getElementById('whatsapp').value = whatsapp;
-        carregarBancoDeDados();
-    </script>
-</body>
-</html>
+        function imprimir
