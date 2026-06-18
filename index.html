@@ -35,5 +35,37 @@
         <header class="bg-[#630f24] text-white p-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
             
             <div class="absolute top-0 right-0 p-4">
-                <button onclick="tentarAcessarAdmin()" class="bg-black/20 p-2 rounded-full hover:bg-black/40 text
-                    
+                <button onclick="tentarAcessarAdmin()" class="bg-black/20 p-2 rounded-full hover:bg-black/40 text-white transition-colors">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+            </div>
+            
+            </header>
+        
+        </section>
+
+    <script>
+        // NOVA FUNÇÃO: Remove o Splash da tela com segurança
+        function fecharTelaCarregamento() {
+            const splash = document.getElementById('splash');
+            if (splash && splash.style.display !== 'none') {
+                splash.style.opacity = '0'; // Aplica o efeito de sumir suavemente
+                setTimeout(() => {
+                    splash.style.display = 'none'; // Desativa o elemento para permitir cliques no fundo
+                }, 400); 
+            }
+        }
+
+        // GATILHO: Executa assim que a estrutura da página carrega
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(fecharTelaCarregamento, 800); // 0.8 segundos de exibição por estética
+        });
+
+        // FUNÇÃO EXISTENTE: Acesso administrativo
+        function tentarAcessarAdmin() {
+            console.log("Acessar admin clicado");
+            // Lógica para acesso administrativo
+        }
+    </script>
+</body>
+</html>
