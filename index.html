@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Le Jollye - Gestão & Cardápio</title>
+    <title>Le Jollye Lanches - Cardápio Digital</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -30,7 +30,7 @@
 </head>
 <body class="bg-gray-50 pb-24">
 
-    <div id="splash" class="fixed inset-0 z-[100] flex flex-col justify-center items-center bg-[#630f24]">
+    <div id="splash" class="fixed inset-0 z-[100] flex flex-col justify-center items-center bg-[#630f24]" style="opacity: 1; transition: opacity 0.4s ease;">
         <img src="https://i.ibb.co/9ky3YJjF/logo-loja.jpg" class="w-48 h-48 rounded-full shadow-2xl mb-6 border-4 border-[#d4af37]">
         <div class="flex flex-col items-center gap-2">
             <div class="w-12 h-12 border-4 border-[#d4af37]/20 border-t-[#d4af37] rounded-full animate-spin"></div>
@@ -64,7 +64,10 @@
             <div class="flex-1">
                 <div class="text-gray-400 text-[10px] uppercase font-bold">Total do Pedido</div>
                 <div class="text-xl font-bold text-[#630f24]">R$ <span id="val-total">0,00</span></div>
-                <select id="select-mesa" class="mt-1 text-xs border rounded bg-gray-50 p-1 w-full focus:ring-1 focus:ring-[#630f24] outline-none"></select>
+                <div class="mt-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Selecione a Mesa / Local</label>
+                    <select id="select-mesa" class="text-xs border rounded bg-gray-50 p-1.5 w-full focus:ring-1 focus:ring-[#630f24] outline-none"></select>
+                </div>
             </div>
             <button onclick="finalizarPedido()" class="bg-[#630f24] text-[#d4af37] px-8 py-4 rounded-2xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
                 <i class="fab fa-whatsapp text-xl"></i> ENVIAR
@@ -91,7 +94,7 @@
                     <button onclick="abaAdmin('aba-cat')" id="btn-aba-cat" class="px-4 py-3 text-xs whitespace-nowrap">Categorias</button>
                     <button onclick="abaAdmin('aba-vendas')" id="btn-aba-vendas" class="px-4 py-3 text-xs whitespace-nowrap">Vendas</button>
                     <button onclick="abaAdmin('aba-estoque')" id="btn-aba-estoque" class="px-4 py-3 text-xs whitespace-nowrap">Estoque</button>
-                    <button onclick="abaAdmin('aba-mesas')" id="btn-aba-mesas" class="px-4 py-3 text-xs whitespace-nowrap">Mesas/QR</button>
+                    <button onclick="abaAdmin('aba-mesas')" id="btn-aba-mesas" class="px-4 py-3 text-xs whitespace-nowrap">Mesas / QR Code</button>
                     <button onclick="abaAdmin('aba-loja')" id="btn-aba-loja" class="px-4 py-3 text-xs whitespace-nowrap">Configurações</button>
                 </div>
 
@@ -129,7 +132,7 @@
                     <div id="aba-mesas" class="admin-aba hidden">
                         <h3 class="font-bold text-gray-700 mb-2">Gerenciar Mesas</h3>
                         <div class="flex gap-2 mb-4">
-                            <input type="text" id="novo-nome-mesa" placeholder="Ex: Mesa 10" class="flex-1 border p-2 rounded-lg text-sm">
+                            <input type="text" id="novo-nome-mesa" placeholder="Ex: Mesa 05" class="flex-1 border p-2 rounded-lg text-sm">
                             <button onclick="addMesa()" class="bg-blue-600 text-white px-4 rounded-lg text-xs font-bold">CRIAR</button>
                         </div>
                         <div id="lista-mesas-admin" class="grid grid-cols-2 gap-3"></div>
@@ -138,7 +141,7 @@
                     <div id="aba-loja" class="admin-aba hidden">
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 mb-1">WhatsApp da Loja (Somente números)</label>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">WhatsApp da Loja (Com DDD, apenas números)</label>
                                 <input type="text" id="cfg-whats" class="w-full border p-3 rounded-xl text-sm">
                             </div>
                             <div>
@@ -149,4 +152,438 @@
                                 <h4 class="text-xs font-bold mb-2">SEGURANÇA DOS DADOS</h4>
                                 <div class="grid grid-cols-2 gap-2">
                                     <button onclick="exportarBackup()" class="bg-gray-800 text-white p-3 rounded-xl text-[10px] font-bold">EXPORTAR BACKUP (.JSON)</button>
-                                    <label class="bg-gray-200 text
+                                    <label class="bg-gray-200 text-gray-800 p-3 rounded-xl text-[10px] font-bold text-center cursor-pointer">
+                                        RESTAURAR BACKUP
+                                        <input type="file" id="file-restore" class="hidden" onchange="importarBackup(event)">
+                                    </label>
+                                </div>
+                            </div>
+                            <button onclick="salvarConfig()" class="w-full bg-emerald-600 text-white p-4 rounded-2xl font-bold">SALVAR TUDO</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-form-prod" class="fixed inset-0 bg-black/90 z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 space-y-4">
+            <h3 class="font-bold text-lg" id="titulo-form">Novo Produto</h3>
+            <div class="space-y-3">
+                <input type="hidden" id="form-id">
+                <input type="text" id="form-nome" placeholder="Nome do Lanche" class="w-full border p-3 rounded-xl text-sm">
+                <input type="text" id="form-desc" placeholder="Descrição (Ingredientes)" class="w-full border p-3 rounded-xl text-sm">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" step="0.01" id="form-preco" placeholder="Preço R$" class="w-full border p-3 rounded-xl text-sm">
+                    <input type="number" id="form-qtd" placeholder="Qtd Estoque" class="w-full border p-3 rounded-xl text-sm">
+                </div>
+                <select id="form-cat" class="w-full border p-3 rounded-xl text-sm"></select>
+                <input type="text" id="form-url" placeholder="URL da Imagem" class="w-full border p-3 rounded-xl text-sm">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="fecharFormProduto()" class="flex-1 bg-gray-100 p-4 rounded-2xl font-bold text-sm">CANCELAR</button>
+                <button onclick="salvarProduto()" class="flex-1 bg-[#630f24] text-white p-4 rounded-2xl font-bold text-sm">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="area-print" class="hidden"></div>
+
+    <script>
+        let db = {
+            config: { nome: "Le Jollye Lanches", logo: "https://i.ibb.co/9ky3YJjF/logo-loja.jpg", whats: "5521999999999", senha: "admin" },
+            categorias: ["Hambúrgueres", "Bebidas", "Porções"],
+            produtos: [],
+            vendas: [],
+            mesas: ["Mesa 01", "Mesa 02", "Balcão"],
+            catFiltro: "Todas"
+        };
+
+        let carrinho = {};
+
+        window.onload = () => {
+            const saved = localStorage.getItem('db_jollye');
+            if(saved) {
+                try {
+                    db = JSON.parse(saved);
+                    // Garante que chaves essenciais novas existam no banco antigo
+                    if(!db.mesas) db.mesas = ["Mesa 01", "Balcão"];
+                    if(!db.vendas) db.vendas = [];
+                } catch(e) { console.log("Erro ao converter banco local."); }
+            }
+            
+            document.getElementById('store-name').innerText = db.config.nome;
+            document.getElementById('store-logo-header').src = db.config.logo;
+            
+            renderLoja();
+            renderAdmin();
+            
+            // Finaliza o Splash Screen de forma limpa e direta
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    splash.style.pointerEvents = 'none';
+                    setTimeout(() => splash.remove(), 400);
+                }
+            }, 1000);
+        };
+
+        function salvarDB() { localStorage.setItem('db_jollye', JSON.stringify(db)); }
+
+        function renderLoja() {
+            const container = document.getElementById('container-produtos-loja');
+            const catContainer = document.getElementById('lista-categorias-loja');
+            const busca = document.getElementById('inputBusca').value.toLowerCase();
+            
+            catContainer.innerHTML = `<button onclick="setFiltro('Todas')" class="px-4 py-2 rounded-full text-xs whitespace-nowrap ${db.catFiltro === 'Todas' ? 'bg-[#d4af37] text-[#630f24] font-bold' : 'bg-white/10 text-white'}">Todas</button>`;
+            db.categorias.forEach(cat => {
+                catContainer.innerHTML += `<button onclick="setFiltro('${cat}')" class="px-4 py-2 rounded-full text-xs whitespace-nowrap ${db.catFiltro === cat ? 'bg-[#d4af37] text-[#630f24] font-bold' : 'bg-white/10 text-white'}">${cat}</button>`;
+            });
+
+            container.innerHTML = '';
+            const filtrados = db.produtos.filter(p => {
+                const matchBusca = p.nome.toLowerCase().includes(busca);
+                const matchCat = db.catFiltro === "Todas" || p.categoria === db.catFiltro;
+                return matchBusca && matchCat;
+            });
+
+            if(filtrados.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 text-xs">Nenhum item cadastrado ou encontrado...</div>`;
+            }
+
+            filtrados.forEach(p => {
+                const qtd = carrinho[p.id] || 0;
+                container.innerHTML += `
+                    <div class="bg-white rounded-3xl p-3 flex items-center gap-4 shadow-sm border border-gray-100">
+                        <img src="${p.url}" class="w-24 h-24 object-cover rounded-2xl bg-gray-50" onerror="this.src='https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500'">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-800 text-sm leading-tight">${p.nome}</h3>
+                            <p class="text-[10px] text-gray-400 line-clamp-2 mt-1">${p.desc}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="font-bold text-[#630f24]">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl p-1">
+                                    <button onclick="addCart('${p.id}', -1)" class="w-8 h-8 bg-white rounded-lg shadow-sm text-gray-400">-</button>
+                                    <span class="font-bold text-xs">${qtd}</span>
+                                    <button onclick="addCart('${p.id}', 1)" class="w-8 h-8 bg-[#630f24] text-white rounded-lg shadow-sm">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const selectMesa = document.getElementById('select-mesa');
+            selectMesa.innerHTML = `<option value="">Escolha a sua mesa...</option>`;
+            db.mesas.forEach(m => selectMesa.innerHTML += `<option value="${m}">${m}</option>`);
+
+            atualizarTotalUI();
+        }
+
+        function setFiltro(cat) { db.catFiltro = cat; renderLoja(); }
+
+        function addCart(id, n) {
+            const prod = db.produtos.find(p => p.id == id);
+            if(n > 0 && prod && prod.qtd <= (carrinho[id] || 0)) {
+                alert("Quantidade indisponível no estoque!");
+                return;
+            }
+            carrinho[id] = (carrinho[id] || 0) + n;
+            if(carrinho[id] <= 0) delete carrinho[id];
+            renderLoja();
+        }
+
+        function atualizarTotalUI() {
+            let total = 0;
+            for(let id in carrinho) {
+                const p = db.produtos.find(x => x.id == id);
+                if (p) total += p.preco * carrinho[id];
+            }
+            document.getElementById('val-total').innerText = total.toFixed(2).replace('.',',');
+            document.getElementById('carrinho-fixo').style.transform = total > 0 ? 'translateY(0)' : 'translateY(100%)';
+        }
+
+        function finalizarPedido() {
+            const mesa = document.getElementById('select-mesa').value;
+            if(!mesa) { alert("Por favor, selecione sua mesa para concluir!"); return; }
+
+            let total = 0;
+            let itensStr = "";
+            let vendaItens = [];
+
+            for(let id in carrinho) {
+                const p = db.produtos.find(x => x.id == id);
+                if(p){
+                    const sub = p.preco * carrinho[id];
+                    total += sub;
+                    itensStr += `${carrinho[id]}x ${p.nome} - R$ ${sub.toFixed(2)}\n`;
+                    p.qtd -= carrinho[id];
+                    vendaItens.push({ nome: p.nome, qtd: carrinho[id] });
+                }
+            }
+
+            const data = new Date().toLocaleString();
+            const cod = "JO-" + Math.floor(1000 + Math.random() * 9000);
+            
+            db.vendas.unshift({ cod, data, mesa, total, itens: vendaItens });
+            salvarDB();
+
+            const msg = `*🍔 PEDIDO COORD: ${cod}*\n\n*Local/Mesa:* ${mesa}\n*Data:* ${data}\n\n*Itens do Pedido:*\n${itensStr}\n*Total Geral: R$ ${total.toFixed(2)}*`;
+            const link = `https://api.whatsapp.com/send?phone=${db.config.whats}&text=${encodeURIComponent(msg)}`;
+            
+            window.open(link, '_blank');
+            carrinho = {};
+            renderLoja();
+            renderAdmin();
+        }
+
+        function abrirAdmin() { 
+            document.getElementById('modal-admin').classList.remove('hidden'); 
+            document.getElementById('admin-login').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('senha-admin').value = '';
+        }
+        function fecharAdmin() { document.getElementById('modal-admin').classList.add('hidden'); }
+
+        function validarLogin() {
+            if(document.getElementById('senha-admin').value === db.config.senha) {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                renderAdmin();
+            } else { alert("Senha de acesso incorreta!"); }
+        }
+
+        function abaAdmin(id) {
+            document.querySelectorAll('.admin-aba').forEach(a => a.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('#admin-dashboard button').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('btn-' + id).classList.add('tab-active');
+        }
+
+        function renderAdmin() {
+            // Listagem de Produtos
+            const listP = document.getElementById('lista-prod-admin');
+            listP.innerHTML = '';
+            db.produtos.forEach(p => {
+                listP.innerHTML += `
+                    <div class="flex items-center gap-3 p-2 border rounded-xl bg-gray-50 text-[10px]">
+                        <img src="${p.url}" class="w-10 h-10 rounded-lg object-cover" onerror="this.src='https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500'">
+                        <div class="flex-1">
+                            <p class="font-bold text-gray-800">${p.nome}</p>
+                            <p class="text-gray-400">R$ ${p.preco.toFixed(2)} | Estoque: ${p.qtd}</p>
+                        </div>
+                        <button onclick="editarProduto('${p.id}')" class="text-blue-500 p-2"><i class="fas fa-edit"></i></button>
+                        <button onclick="delProduto('${p.id}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            });
+
+            // Listagem do Estoque rápido
+            const listE = document.getElementById('lista-estoque-admin');
+            listE.innerHTML = '';
+            db.produtos.forEach(p => {
+                const cor = p.qtd < 5 ? 'text-red-500' : 'text-green-600';
+                listE.innerHTML += `
+                    <div class="flex justify-between items-center p-3 border rounded-xl text-xs">
+                        <span class="font-bold text-gray-700">${p.nome}</span>
+                        <input type="number" onchange="mudarEstoque('${p.id}', this.value)" value="${p.qtd}" class="w-16 border rounded p-1 text-center font-bold ${cor}">
+                    </div>
+                `;
+            });
+
+            // Histórico de Fechamento / Vendas
+            let faturamento = 0;
+            const listV = document.getElementById('lista-vendas-admin');
+            listV.innerHTML = '';
+            db.vendas.forEach(v => {
+                faturamento += v.total;
+                listV.innerHTML += `
+                    <div class="p-3 border rounded-xl text-[10px] space-y-1 bg-gray-50">
+                        <div class="flex justify-between font-bold">
+                            <span>${v.cod} (${v.mesa})</span>
+                            <span class="text-[#630f24]">R$ ${v.total.toFixed(2)}</span>
+                        </div>
+                        <p class="text-gray-400">${v.data}</p>
+                        <button onclick="imprimirVenda('${v.cod}')" class="bg-white border text-gray-700 px-2 py-1 rounded shadow-sm hover:bg-gray-100">🖨️ Reimprimir Pedido</button>
+                    </div>
+                `;
+            });
+            document.getElementById('fat-total').innerText = faturamento.toFixed(2);
+
+            // Categorias
+            const listC = document.getElementById('lista-cat-admin');
+            listC.innerHTML = '';
+            db.categorias.forEach((c, i) => {
+                listC.innerHTML += `
+                    <div class="flex justify-between p-2 bg-gray-50 rounded-lg text-xs items-center">
+                        <span class="text-gray-700 font-medium">${c}</span>
+                        <button onclick="delCat(${i})" class="text-red-500 p-1"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+            });
+
+            // GERAÇÃO DO QR CODE COMPLETA DIRETAMENTE NA LISTA DE MESAS
+            const listM = document.getElementById('lista-mesas-admin');
+            listM.innerHTML = '';
+            db.mesas.forEach((m, i) => {
+                listM.innerHTML += `
+                    <div class="p-3 border rounded-xl text-center bg-gray-50 flex flex-col justify-between">
+                        <div>
+                            <p class="font-bold text-xs mb-1 text-gray-700">📍 ${m}</p>
+                            <div id="qr-container-${i}" class="hidden my-2 p-2 bg-white rounded-lg border flex flex-col items-center"></div>
+                        </div>
+                        <div class="space-y-1 mt-2">
+                            <button onclick="gerarQR('${m}', ${i})" class="bg-black text-white text-[9px] py-1 px-2 rounded font-bold block w-full hover:bg-gray-800 transition">✨ VER QR CODE</button>
+                            <button onclick="delMesa(${i})" class="text-red-500 text-[9px] font-semibold block w-full hover:underline">EXCLUIR MESA</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('cfg-whats').value = db.config.whats;
+            document.getElementById('cfg-nome').value = db.config.nome;
+        }
+
+        function gerarQR(mesa, index) {
+            const container = document.getElementById(`qr-container-${index}`);
+            if (!container.classList.contains('hidden')) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            // Pega o endereço base do github pages dinamicamente
+            const urlCardapio = window.location.href.split('?')[0];
+            
+            // Renderiza o QR Code apontando para a URL da mesa específica
+            container.innerHTML = `
+                <img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(urlCardapio)}&choe=UTF-8" class="w-28 h-28 border shadow-sm bg-white" alt="QR Code">
+                <button onclick="window.print()" class="mt-1.5 text-[8px] bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">🖨️ Imprimir</button>
+            `;
+            container.classList.remove('hidden');
+        }
+
+        function abrirFormProduto() { 
+            document.getElementById('modal-form-prod').classList.remove('hidden');
+            document.getElementById('titulo-form').innerText = "Novo Lanche";
+            document.getElementById('form-id').value = "";
+            document.getElementById('form-nome').value = "";
+            document.getElementById('form-desc').value = "";
+            document.getElementById('form-preco').value = "";
+            document.getElementById('form-qtd').value = "";
+            document.getElementById('form-url').value = "";
+            
+            const sel = document.getElementById('form-cat');
+            sel.innerHTML = '';
+            db.categorias.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+        }
+        function fecharFormProduto() { document.getElementById('modal-form-prod').classList.add('hidden'); }
+
+        function salvarProduto() {
+            const p = {
+                id: document.getElementById('form-id').value || Date.now(),
+                nome: document.getElementById('form-nome').value,
+                desc: document.getElementById('form-desc').value,
+                preco: parseFloat(document.getElementById('form-preco').value) || 0,
+                qtd: parseInt(document.getElementById('form-qtd').value) || 0,
+                categoria: document.getElementById('form-cat').value,
+                url: document.getElementById('form-url').value
+            };
+
+            const index = db.produtos.findIndex(x => x.id == p.id);
+            if(index > -1) db.produtos[index] = p;
+            else db.produtos.push(p);
+
+            salvarDB();
+            fecharFormProduto();
+            renderLoja();
+            renderAdmin();
+        }
+
+        function editarProduto(id) {
+            const p = db.produtos.find(x => x.id == id);
+            abrirFormProduto();
+            document.getElementById('titulo-form').innerText = "Editar Lanche";
+            document.getElementById('form-id').value = p.id;
+            document.getElementById('form-nome').value = p.nome;
+            document.getElementById('form-desc').value = p.desc;
+            document.getElementById('form-preco').value = p.preco;
+            document.getElementById('form-qtd').value = p.qtd;
+            document.getElementById('form-cat').value = p.categoria;
+            document.getElementById('form-url').value = p.url;
+        }
+
+        function delProduto(id) { if(confirm("Apagar este lanche do cardápio?")) { db.produtos = db.produtos.filter(p => p.id != id); salvarDB(); renderLoja(); renderAdmin(); } }
+
+        function mudarEstoque(id, val) {
+            const p = db.produtos.find(x => x.id == id);
+            if(p) p.qtd = parseInt(val) || 0;
+            salvarDB();
+            renderLoja();
+            renderAdmin();
+        }
+
+        function addCategoria() { 
+            const n = document.getElementById('novo-nome-cat').value;
+            if(n) { db.categorias.push(n); salvarDB(); renderLoja(); renderAdmin(); document.getElementById('novo-nome-cat').value = ""; }
+        }
+        function delCat(i) { db.categorias.splice(i, 1); salvarDB(); renderLoja(); renderAdmin(); }
+
+        function addMesa() { 
+            const n = document.getElementById('novo-nome-mesa').value;
+            if(n) { db.mesas.push(n); salvarDB(); renderLoja(); renderAdmin(); document.getElementById('novo-nome-mesa').value = ""; }
+        }
+        function delMesa(i) { db.mesas.splice(i, 1); salvarDB(); renderLoja(); renderAdmin(); }
+
+        function salvarConfig() {
+            db.config.whats = document.getElementById('cfg-whats').value;
+            db.config.nome = document.getElementById('cfg-nome').value;
+            salvarDB();
+            alert("Configurações atualizadas!");
+            location.reload();
+        }
+
+        function imprimirVenda(cod) {
+            const v = db.vendas.find(x => x.cod == cod);
+            if(!v) return;
+            const area = document.getElementById('area-print');
+            area.innerHTML = `
+                <center>
+                    <b>${db.config.nome}</b><br>
+                    Pedido: ${v.cod}<br>
+                    Local: ${v.mesa}<br>
+                    Data: ${v.data}<br>
+                    ---------------------------<br>
+                    ${v.itens.map(i => `${i.qtd}x ${i.nome}`).join('<br>')}
+                    <br>---------------------------<br>
+                    <b>TOTAL: R$ ${v.total.toFixed(2)}</b><br><br>
+                    Obrigado pela preferência!
+                </center>
+            `;
+            window.print();
+        }
+
+        function exportarBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "backup_jollye_" + Date.now() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importarBackup(event) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    db = JSON.parse(e.target.result);
+                    salvarDB();
+                    alert("Dados do sistema restaurados!");
+                    location.reload();
+                } catch(err) { alert("Arquivo inválido."); }
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>
