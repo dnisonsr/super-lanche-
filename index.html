@@ -126,8 +126,6 @@
             cursor: pointer;
         }
         .btn-print:hover { background: #3a5a8a; }
-
-        /* Rodapé fixo */
         .footer-assinatura {
             position: fixed;
             bottom: 0;
@@ -144,20 +142,28 @@
             border-top: 1px solid #d4af37;
             opacity: 0.85;
         }
-        .footer-assinatura a {
-            color: #d4af37;
-            text-decoration: none;
+        .footer-assinatura a { color: #d4af37; text-decoration: none; }
+        .footer-assinatura a:hover { color: #f0d060; }
+        /* Preview da imagem no upload */
+        .preview-imagem {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 8px;
         }
-        .footer-assinatura a:hover {
-            color: #f0d060;
+        /* Barra de espaço */
+        .espaco-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e0da;
+            overflow: hidden;
+            margin-top: 4px;
         }
-        /* Ajuste para o carrinho flutuante não sobrepor o rodapé */
-        #carrinho-flutuante {
-            bottom: 80px;
-        }
-        /* Ajuste no padding do body para o rodapé */
-        body {
-            padding-bottom: 70px;
+        .espaco-bar .fill {
+            height: 100%;
+            background: #d4af37;
+            transition: width 0.3s;
         }
     </style>
 </head>
@@ -299,17 +305,43 @@
                 <div id="lista-categorias" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
             </div>
 
-            <!-- PRODUTOS -->
+            <!-- PRODUTOS (com upload de imagem) -->
             <div id="tab-produtos" class="tab-content hidden">
                 <div class="bg-white rounded-xl shadow p-4 mb-6">
-                    <h3 class="font-bold text-lg mb-3">Adicionar Produto</h3>
+                    <h3 class="font-bold text-lg mb-3" id="form-produto-title">Adicionar Produto</h3>
                     <form id="form-produto" onsubmit="salvarProduto(event)">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium text-gray-700">Nome *</label><input type="text" id="nome-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl" required></div>
-                            <div><label class="block text-sm font-medium text-gray-700">Preço (R$) *</label><input type="number" step="0.01" id="preco-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl" required></div>
-                            <div><label class="block text-sm font-medium text-gray-700">Categoria *</label><select id="categoria-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl" required><option value="">Selecione</option></select></div>
-                            <div><label class="block text-sm font-medium text-gray-700">URL da imagem</label><input type="url" id="imagem-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="https://exemplo.com/foto.jpg"></div>
-                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">Descrição</label><textarea id="descricao-produto" rows="2" class="w-full p-3 border-2 border-gray-200 rounded-xl" placeholder="Breve descrição"></textarea></div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nome *</label>
+                                <input type="text" id="nome-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Preço (R$) *</label>
+                                <input type="number" step="0.01" id="preco-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Categoria *</label>
+                                <select id="categoria-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl" required>
+                                    <option value="">Selecione</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">URL da imagem <span class="text-xs text-gray-400">(ou faça upload abaixo)</span></label>
+                                <input type="url" id="imagem-produto" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" placeholder="https://exemplo.com/foto.jpg">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Ou faça upload (imagem será comprimida)</label>
+                                <input type="file" id="upload-imagem" accept="image/*" class="w-full p-2 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" onchange="previewImagem(event)">
+                                <div id="preview-container" class="mt-2 hidden">
+                                    <p class="text-sm text-gray-500">Pré-visualização:</p>
+                                    <img id="preview-img" class="preview-imagem" alt="Pré-visualização">
+                                    <p class="text-xs text-gray-400 mt-1" id="info-tamanho"></p>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Descrição</label>
+                                <textarea id="descricao-produto" rows="2" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#d4af37] outline-none" placeholder="Breve descrição"></textarea>
+                            </div>
                         </div>
                         <input type="hidden" id="edit-produto-id" value="">
                         <button type="submit" class="mt-4 btn-gold px-6 py-3 rounded-xl transition w-full md:w-auto">Salvar Produto</button>
@@ -373,36 +405,35 @@
                         </div>
                     </div>
                     <div id="resumo-caixa" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 resumo-caixa">
-                        <div class="text-center">
-                            <p class="text-gray-500 text-sm">📦 Total Pedidos</p>
-                            <p id="caixa-total-pedidos" class="numero-grande">0</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-gray-500 text-sm">💰 Venda Total</p>
-                            <p id="caixa-total-vendas" class="numero-grande">R$ 0,00</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-gray-500 text-sm">📊 Ticket Médio</p>
-                            <p id="caixa-ticket-medio" class="numero-grande">R$ 0,00</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-gray-500 text-sm">⏳ Pendentes / ✅ Concluídos</p>
-                            <p id="caixa-status" class="numero-grande text-base">0 / 0</p>
-                        </div>
+                        <div class="text-center"><p class="text-gray-500 text-sm">📦 Total Pedidos</p><p id="caixa-total-pedidos" class="numero-grande">0</p></div>
+                        <div class="text-center"><p class="text-gray-500 text-sm">💰 Venda Total</p><p id="caixa-total-vendas" class="numero-grande">R$ 0,00</p></div>
+                        <div class="text-center"><p class="text-gray-500 text-sm">📊 Ticket Médio</p><p id="caixa-ticket-medio" class="numero-grande">R$ 0,00</p></div>
+                        <div class="text-center"><p class="text-gray-500 text-sm">⏳ Pendentes / ✅ Concluídos</p><p id="caixa-status" class="numero-grande text-base">0 / 0</p></div>
                     </div>
                 </div>
                 <div class="bg-white rounded-xl shadow p-4">
                     <h4 class="font-bold text-lg mb-3">📋 Pedidos do dia</h4>
-                    <div id="lista-pedidos-caixa" class="space-y-2 max-h-96 overflow-y-auto">
-                        <!-- Renderizado via JS -->
-                    </div>
+                    <div id="lista-pedidos-caixa" class="space-y-2 max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
 
-            <!-- CONFIGURAÇÕES -->
+            <!-- CONFIGURAÇÕES (com indicador de espaço e backup) -->
             <div id="tab-configuracoes" class="tab-content hidden">
                 <div class="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto">
                     <h3 class="font-bold text-2xl text-[#630f24] mb-6">Configurações Gerais</h3>
+                    
+                    <!-- Indicador de espaço -->
+                    <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-600">💾 Espaço utilizado no navegador:</span>
+                            <span id="espaco-usado" class="text-sm font-bold">0 MB / 5 MB</span>
+                        </div>
+                        <div class="espaco-bar">
+                            <div id="barra-espaco" class="fill" style="width:0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1" id="dica-espaco">Cerca de 0 imagens podem ser adicionadas.</p>
+                    </div>
+
                     <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <p class="text-sm font-medium text-gray-600">📱 Número atual cadastrado:</p>
                         <p id="numero-salvo-exibicao" class="text-lg font-bold text-[#630f24]">Nenhum</p>
@@ -460,7 +491,7 @@
         </div>
     </section>
 
-    <!-- RODAPÉ FIXO COM ASSINATURA -->
+    <!-- RODAPÉ -->
     <div class="footer-assinatura">
         &copy; 2026 <a href="#" onclick="event.preventDefault()">Denis Moreno</a> &bull; Todos os direitos reservados.
     </div>
@@ -469,8 +500,8 @@
         // ========== CONFIGURAÇÕES ==========
         const DEFAULT_PASSWORD = 'admin123';
         const SPLASH_DURATION = 3500;
+        const MAX_STORAGE_MB = 5; // limite aproximado do localStorage
 
-        // Obtém a senha do localStorage ou usa a padrão
         function getAdminPassword() {
             const saved = localStorage.getItem('admin_password');
             return saved || DEFAULT_PASSWORD;
@@ -496,6 +527,82 @@
         function getPedidos() { return JSON.parse(localStorage.getItem('pedidos')) || []; }
         function setPedidos(peds) { localStorage.setItem('pedidos', JSON.stringify(peds)); }
 
+        // ========== INDICADOR DE ESPAÇO ==========
+        function calcularEspaco() {
+            let total = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    total += localStorage[key].length * 2; // UTF-16
+                }
+            }
+            const mb = (total / (1024 * 1024)).toFixed(2);
+            const percent = Math.min((total / (MAX_STORAGE_MB * 1024 * 1024)) * 100, 100);
+            return { mb: parseFloat(mb), percent: Math.min(percent, 100) };
+        }
+
+        function atualizarIndicadorEspaco() {
+            const { mb, percent } = calcularEspaco();
+            document.getElementById('espaco-usado').textContent = `${mb.toFixed(2)} MB / ${MAX_STORAGE_MB} MB`;
+            document.getElementById('barra-espaco').style.width = percent + '%';
+            // Estimar quantas imagens cabem (considerando ~80KB por imagem comprimida)
+            const restante = (MAX_STORAGE_MB - mb) * 1024; // em KB
+            const estimativa = Math.floor(restante / 100); // ~100KB por imagem
+            document.getElementById('dica-espaco').textContent = 
+                `Espaço restante: ${restante.toFixed(0)} KB. Cerca de ${estimativa} imagens (comprimidas) podem ser adicionadas.`;
+        }
+
+        // ========== COMPRESSÃO DE IMAGEM (NOVO) ==========
+        function comprimirImagem(file, maxWidth = 600, qualidade = 0.75) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            const ratio = maxWidth / width;
+                            width = maxWidth;
+                            height = Math.round(height * ratio);
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', qualidade);
+                        // Tamanho em KB
+                        const sizeKB = (dataUrl.length * 3/4) / 1024;
+                        resolve({ dataUrl, sizeKB });
+                    };
+                    img.onerror = function() { reject('Erro ao carregar a imagem'); };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() { reject('Erro ao ler o arquivo'); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ========== PRÉ-VISUALIZAÇÃO DE UPLOAD ==========
+        async function previewImagem(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const container = document.getElementById('preview-container');
+            const preview = document.getElementById('preview-img');
+            const info = document.getElementById('info-tamanho');
+
+            try {
+                const { dataUrl, sizeKB } = await comprimirImagem(file);
+                preview.src = dataUrl;
+                container.classList.remove('hidden');
+                info.textContent = `Tamanho comprimido: ${sizeKB.toFixed(1)} KB`;
+                // Preenche o campo URL com o Base64 (opcional, pode deixar vazio)
+                document.getElementById('imagem-produto').value = dataUrl;
+            } catch (err) {
+                alert('Erro ao processar a imagem: ' + err);
+            }
+        }
+
         // ========== SPLASH ==========
         function fecharSplash() {
             const splash = document.getElementById('splash');
@@ -514,6 +621,10 @@
             atualizarCarrinhoUI();
             const hoje = new Date().toISOString().split('T')[0];
             document.getElementById('data-caixa').value = hoje;
+            // Se admin estiver ativo, atualiza indicador
+            if (document.getElementById('view-admin').classList.contains('active')) {
+                atualizarIndicadorEspaco();
+            }
         });
         setTimeout(fecharSplash, 5000);
 
@@ -707,7 +818,7 @@
                 prods.forEach(p => {
                     html += `
                         <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col">
-                            ${p.imagem ? `<img src="${p.imagem}" alt="${p.nome}" class="w-full h-40 object-cover">` : `<div class="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-400"><i class="fas fa-image text-3xl"></i></div>`}
+                            ${p.imagem ? `<img src="${p.imagem}" alt="${p.nome}" class="w-full h-40 object-cover" loading="lazy">` : `<div class="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-400"><i class="fas fa-image text-3xl"></i></div>`}
                             <div class="p-3 flex-1 flex flex-col">
                                 <h3 class="font-bold text-lg">${p.nome}</h3>
                                 <p class="text-sm text-gray-500 flex-1">${p.descricao || ''}</p>
@@ -727,7 +838,7 @@
                 produtosSemCategoria.forEach(p => {
                     html += `
                         <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col">
-                            ${p.imagem ? `<img src="${p.imagem}" alt="${p.nome}" class="w-full h-40 object-cover">` : `<div class="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-400"><i class="fas fa-image text-3xl"></i></div>`}
+                            ${p.imagem ? `<img src="${p.imagem}" alt="${p.nome}" class="w-full h-40 object-cover" loading="lazy">` : `<div class="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-400"><i class="fas fa-image text-3xl"></i></div>`}
                             <div class="p-3 flex-1 flex flex-col">
                                 <h3 class="font-bold text-lg">${p.nome}</h3>
                                 <p class="text-sm text-gray-500 flex-1">${p.descricao || ''}</p>
@@ -782,7 +893,7 @@
             else if (tab === 'mesas') renderizarMesasAdmin();
             else if (tab === 'pedidos') renderizarPedidosAdmin();
             else if (tab === 'caixa') renderizarCaixa();
-            else if (tab === 'configuracoes') carregarConfiguracoes();
+            else if (tab === 'configuracoes') { carregarConfiguracoes(); atualizarIndicadorEspaco(); }
         }
 
         // ========== ADMIN - CATEGORIAS ==========
@@ -843,7 +954,7 @@
             preencherSelectCategorias();
         }
 
-        // ========== ADMIN - PRODUTOS ==========
+        // ========== ADMIN - PRODUTOS (com upload) ==========
         function preencherSelectCategorias() {
             const select = document.getElementById('categoria-produto');
             const cats = getCategorias();
@@ -851,6 +962,7 @@
             select.innerHTML = '<option value="">Selecione</option>' + cats.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             if (cats.some(c => c.id === currentVal)) select.value = currentVal;
         }
+
         function renderizarProdutosAdmin() {
             const container = document.getElementById('lista-produtos');
             const prods = getProdutos();
@@ -861,9 +973,14 @@
             }
             container.innerHTML = prods.map(p => {
                 const catNome = cats.find(c => c.id === p.categoria)?.nome || 'Sem categoria';
+                // Se a imagem for Base64 muito longa, exibe um resumo
+                const imgSrc = p.imagem && p.imagem.startsWith('data:') ? '🖼️ (Base64)' : p.imagem || 'Sem imagem';
                 return `
                 <div class="bg-white rounded-xl shadow overflow-hidden border border-gray-100 flex flex-col">
-                    ${p.imagem ? `<img src="${p.imagem}" class="w-full h-32 object-cover" alt="${p.nome}">` : `<div class="w-full h-32 bg-gray-100 flex items-center justify-center text-gray-300"><i class="fas fa-image text-2xl"></i></div>`}
+                    ${p.imagem ? (p.imagem.startsWith('data:') ? 
+                        `<img src="${p.imagem}" class="w-full h-32 object-cover" alt="${p.nome}" loading="lazy">` : 
+                        `<img src="${p.imagem}" class="w-full h-32 object-cover" alt="${p.nome}" loading="lazy">`) : 
+                        `<div class="w-full h-32 bg-gray-100 flex items-center justify-center text-gray-300"><i class="fas fa-image text-2xl"></i></div>`}
                     <div class="p-3 flex-1 flex flex-col">
                         <h4 class="font-bold">${p.nome}</h4>
                         <p class="text-xs text-gray-500">${catNome}</p>
@@ -877,6 +994,7 @@
                 </div>
             `}).join('');
         }
+
         function salvarProduto(e) {
             e.preventDefault();
             const nome = document.getElementById('nome-produto').value.trim();
@@ -885,29 +1003,57 @@
             const imagem = document.getElementById('imagem-produto').value.trim();
             const descricao = document.getElementById('descricao-produto').value.trim();
             const editId = document.getElementById('edit-produto-id').value;
+
             if (!categoria) { alert('Selecione uma categoria.'); return; }
+
+            // Se o campo imagem estiver vazio, tenta pegar da preview (upload)
+            let imagemFinal = imagem;
+            if (!imagemFinal) {
+                const previewImg = document.getElementById('preview-img');
+                if (previewImg && previewImg.src && previewImg.src.startsWith('data:')) {
+                    imagemFinal = previewImg.src;
+                }
+            }
+
+            // Verifica espaço antes de salvar
+            if (imagemFinal && imagemFinal.startsWith('data:')) {
+                const tamanhoKB = (imagemFinal.length * 3/4) / 1024;
+                const { mb, percent } = calcularEspaco();
+                const espacoRestante = (MAX_STORAGE_MB - mb) * 1024; // em KB
+                if (tamanhoKB > espacoRestante) {
+                    if (!confirm(`⚠️ A imagem (${tamanhoKB.toFixed(1)} KB) pode exceder o espaço disponível (${espacoRestante.toFixed(0)} KB). Deseja continuar?`)) {
+                        return;
+                    }
+                }
+            }
+
             let prods = getProdutos();
             if (editId) {
                 const index = prods.findIndex(p => p.id === editId);
                 if (index !== -1) {
-                    prods[index] = { ...prods[index], nome, preco, categoria, imagem, descricao };
+                    prods[index] = { ...prods[index], nome, preco, categoria, imagem: imagemFinal, descricao };
                 }
                 document.getElementById('edit-produto-id').value = '';
                 document.querySelector('#form-produto button[type="submit"]').textContent = 'Salvar Produto';
                 document.getElementById('btn-cancelar-produto').classList.add('hidden');
             } else {
-                const newProd = { id: Date.now().toString(), nome, preco, categoria, imagem: imagem || '', descricao: descricao || '' };
+                const newProd = { id: Date.now().toString(), nome, preco, categoria, imagem: imagemFinal || '', descricao: descricao || '' };
                 prods.push(newProd);
             }
             setProdutos(prods);
+            // Limpar formulário
             document.getElementById('nome-produto').value = '';
             document.getElementById('preco-produto').value = '';
             document.getElementById('imagem-produto').value = '';
             document.getElementById('descricao-produto').value = '';
             document.getElementById('categoria-produto').value = '';
+            document.getElementById('preview-container').classList.add('hidden');
+            document.getElementById('upload-imagem').value = '';
             renderizarProdutosAdmin();
             renderizarCardapio();
+            atualizarIndicadorEspaco();
         }
+
         function editarProduto(id) {
             const prods = getProdutos();
             const p = prods.find(prod => prod.id === id);
@@ -920,19 +1066,34 @@
             document.getElementById('edit-produto-id').value = id;
             document.querySelector('#form-produto button[type="submit"]').textContent = 'Atualizar Produto';
             document.getElementById('btn-cancelar-produto').classList.remove('hidden');
+            // Se a imagem for Base64, mostra preview
+            if (p.imagem && p.imagem.startsWith('data:')) {
+                const preview = document.getElementById('preview-img');
+                preview.src = p.imagem;
+                document.getElementById('preview-container').classList.remove('hidden');
+                const sizeKB = (p.imagem.length * 3/4) / 1024;
+                document.getElementById('info-tamanho').textContent = `Tamanho: ${sizeKB.toFixed(1)} KB (Base64)`;
+            } else {
+                document.getElementById('preview-container').classList.add('hidden');
+            }
         }
+
         function cancelarEdicaoProduto() {
             document.getElementById('edit-produto-id').value = '';
             document.querySelector('#form-produto button[type="submit"]').textContent = 'Salvar Produto';
             document.getElementById('btn-cancelar-produto').classList.add('hidden');
             document.getElementById('form-produto').reset();
+            document.getElementById('preview-container').classList.add('hidden');
+            document.getElementById('upload-imagem').value = '';
         }
+
         function excluirProduto(id) {
             if (!confirm('Excluir este produto?')) return;
             let prods = getProdutos().filter(p => p.id !== id);
             setProdutos(prods);
             renderizarProdutosAdmin();
             renderizarCardapio();
+            atualizarIndicadorEspaco();
         }
 
         // ========== ADMIN - MESAS ==========
@@ -1289,10 +1450,8 @@
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(relatorio).then(() => {
-                    alert('✅ Relatório de fechamento copiado para a área de transferência!\n\nCole em um bloco de notas ou envie para quem precisar.');
-                }).catch(() => {
-                    fallbackCopy(relatorio);
-                });
+                    alert('✅ Relatório de fechamento copiado para a área de transferência!');
+                }).catch(() => { fallbackCopy(relatorio); });
             } else {
                 fallbackCopy(relatorio);
             }
@@ -1527,6 +1686,7 @@
             const hoje = new Date().toISOString().split('T')[0];
             document.getElementById('data-caixa').value = hoje;
             renderizarCaixa();
+            atualizarIndicadorEspaco();
             trocarTabAdmin('categorias');
         }
 
